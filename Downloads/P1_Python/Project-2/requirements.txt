@@ -1,0 +1,25 @@
+# Roller Coaster Simulation - Intermediate Submission 2
+# Install with: pip install -r requirements.txt
+
+# Core OpenGL and graphics
+PyOpenGL==3.1.7
+PyOpenGL-accelerate==3.1.7
+
+# Numerical computations
+numpy==1.24.3
+
+# Image loading (for textures if needed)
+Pillow==10.0.0
+
+# Optional: For better performance and additional features
+# pygame==2.5.2  # Alternative to glut if needed
+
+
+
+
+
+
+
+
+
+
