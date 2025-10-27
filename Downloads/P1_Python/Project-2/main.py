@@ -320,10 +320,10 @@ def draw_ground_surfaces():
     
     # Draw stone platform sections
     platform_positions = [
-        (-30, -1.4, -20, 25, 15),  # x, z, width, depth
-        (20, -1.4, -25, 30, 20),
-        (-15, -1.4, 30, 20, 25),
-        (35, -1.4, 25, 28, 18)
+        (-30, -20, 25, 15),  # x, z, width, depth
+        (20, -25, 30, 20),
+        (-15, 30, 20, 25),
+        (35, 25, 28, 18)
     ]
     
     glColor3f(0.5, 0.5, 0.6)  # Gray stone
