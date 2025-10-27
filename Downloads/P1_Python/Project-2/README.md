@@ -40,8 +40,8 @@ git clone https://github.com/vamsipaul1/Python-Project-Rollercoaster.git
 cd Python-Project-Rollercoaster
 
 # Install dependencies
-pip install -r requirements.txt
-```
+   pip install -r requirements.txt
+   ```
 
 ### Method 2: Download ZIP
 1. **Download** the project as ZIP from GitHub
@@ -51,9 +51,9 @@ pip install -r requirements.txt
 ### Running the Simulation
 
 **Option A: Full 3D Graphics Mode** (recommended):
-```bash
-python main.py
-```
+   ```bash
+   python main.py
+   ```
 *Note: On Windows, this requires freeglut.dll (see troubleshooting section)*
 
 **Option B: Demo Mode** (no graphics, tests simulation logic):
@@ -85,17 +85,27 @@ Demo completed! All simulation systems working correctly.
 ============================================================
 ```
 
-## 🎮 Controls
+## 🎮 Enhanced Controls
 
 | Key | Action |
 |-----|--------|
-| `W` | Increase cart speed |
-| `S` | Decrease cart speed |
+| `W` | Increase cart speed (fine control) |
+| `S` | Decrease cart speed (fine control) |
 | `Space` | Pause/Resume animation |
-| `C` | Toggle camera mode (3rd person ↔ 1st person) |
-| `I` | Toggle info display |
+| `C` | Cycle camera modes (5 cinematic modes) |
+| `E` | Toggle environment (trees, buildings) |
+| `F` | Toggle atmospheric fog |
+| `L` | Toggle enhanced lighting system |
+| `I` | Toggle enhanced UI panel |
 | `T` | Toggle track visualization |
 | `Esc` or `Q` | Quit application |
+
+### 🎥 Camera Modes
+1. **Follow Camera** - Smooth third-person tracking
+2. **First-Person** - Inside the cart view
+3. **Cinematic** - Dynamic tracking with orbital movement
+4. **Orbit** - Circular orbit around the cart
+5. **Flyby** - Dramatic flyby angles
 
 ### Camera Modes
 

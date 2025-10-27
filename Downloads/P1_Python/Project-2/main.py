@@ -56,17 +56,26 @@ camera_target = np.array([0.0, 0.0, 0.0])
 camera_up = np.array([0.0, 1.0, 0.0])
 camera_smooth_factor = 0.08  # Ultra-smooth camera movement
 
-# Visual settings for mobile game quality
-terrain_size = 200.0
-rail_radius = 0.15      # Thicker blue rails
-rail_segments = 16      # Smooth circular rails
-cart_scale = 0.8
-lighting_intensity = 1.5
+# Visual settings for ultra-realistic urban environment
+terrain_size = 300.0
+rail_radius = 0.12      # Realistic rail thickness
+rail_segments = 20      # Ultra-smooth circular rails
+cart_scale = 1.0        # Realistic cart proportions
+lighting_intensity = 1.8
+
+# Urban environment settings
+building_density = 15   # Number of buildings
+tree_density = 25      # Number of trees
+urban_scale = 1.2      # Scale for urban elements
 
 # Free-fly camera controls
-free_camera_pos = np.array([0.0, 10.0, 20.0])
+free_camera_pos = np.array([0.0, 12.0, 25.0])
 free_camera_angles = [0.0, 0.0]  # yaw, pitch
-mouse_sensitivity = 0.5
+mouse_sensitivity = 0.3
+
+# Performance optimization
+frame_rate_target = 60
+vsync_enabled = True
 
 def debug_print(*args):
     """Print debug messages if DEBUG is enabled."""
@@ -264,48 +273,79 @@ def get_cart_forward(t, delta_t=5e-4):
     
     return forward / length
 
-def draw_realistic_terrain():
-    """Draw realistic green terrain like mobile roller coaster games."""
+def draw_urban_terrain():
+    """Draw realistic urban terrain with mixed surfaces like the reference image."""
     if not show_environment:
         return
     
-    # Realistic grass material
-    grass_ambient = [0.1, 0.25, 0.1, 1.0]
-    grass_diffuse = [0.2, 0.7, 0.2, 1.0]    # Bright green grass
-    grass_specular = [0.05, 0.1, 0.05, 1.0]
-    grass_shininess = [5.0]
+    # Draw main ground plane (mixed surfaces)
+    draw_ground_surfaces()
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, grass_ambient)
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, grass_diffuse)
-    glMaterialfv(GL_FRONT, GL_SPECULAR, grass_specular)
-    glMaterialfv(GL_FRONT, GL_SHININESS, grass_shininess)
+    # Add urban environment
+    draw_urban_environment()
+
+def draw_ground_surfaces():
+    """Draw realistic ground with different surface types."""
+    # Yellow/golden ground areas (like in reference image)
+    golden_ambient = [0.3, 0.25, 0.1, 1.0]
+    golden_diffuse = [0.8, 0.7, 0.3, 1.0]    # Golden yellow
+    golden_specular = [0.2, 0.2, 0.1, 1.0]
+    golden_shininess = [15.0]
     
-    # Draw smooth rolling terrain
-    glColor3f(0.2, 0.7, 0.2)  # Bright grass green
+    glMaterialfv(GL_FRONT, GL_AMBIENT, golden_ambient)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, golden_diffuse)
+    glMaterialfv(GL_FRONT, GL_SPECULAR, golden_specular)
+    glMaterialfv(GL_FRONT, GL_SHININESS, golden_shininess)
     
-    segments = 50
-    for i in range(segments):
-        glBegin(GL_TRIANGLE_STRIP)
-        for j in range(segments + 1):
-            for k in range(2):
-                x = ((i + k) / float(segments) - 0.5) * terrain_size * 2
-                z = (j / float(segments) - 0.5) * terrain_size * 2
-                
-                # Gentle rolling hills like mobile games
-                height = -2.0 + 0.8 * math.sin(x * 0.05) * math.cos(z * 0.05)
-                height += 0.3 * math.sin(x * 0.15) * math.sin(z * 0.12)
-                
-                # Smooth normals for realistic lighting
-                normal_x = -0.04 * math.cos(x * 0.05) * math.cos(z * 0.05)
-                normal_z = 0.04 * math.sin(x * 0.05) * math.sin(z * 0.05)
-                normal = normalize_vector([normal_x, 1.0, normal_z])
-                
-                glNormal3f(normal[0], normal[1], normal[2])
-                glVertex3f(x, height, z)
+    # Main golden ground plane
+    glColor3f(0.8, 0.7, 0.3)  # Golden yellow
+    glBegin(GL_QUADS)
+    glNormal3f(0, 1, 0)
+    glVertex3f(-terrain_size, -1.5, -terrain_size)
+    glVertex3f(terrain_size, -1.5, -terrain_size)
+    glVertex3f(terrain_size, -1.5, terrain_size)
+    glVertex3f(-terrain_size, -1.5, terrain_size)
+    glEnd()
+    
+    # Stone/concrete platform areas (like in reference image)
+    stone_ambient = [0.2, 0.2, 0.25, 1.0]
+    stone_diffuse = [0.5, 0.5, 0.6, 1.0]     # Gray stone
+    stone_specular = [0.3, 0.3, 0.4, 1.0]
+    stone_shininess = [25.0]
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, stone_ambient)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, stone_diffuse)
+    glMaterialfv(GL_FRONT, GL_SPECULAR, stone_specular)
+    glMaterialfv(GL_FRONT, GL_SHININESS, stone_shininess)
+    
+    # Draw stone platform sections
+    platform_positions = [
+        (-30, -1.4, -20, 25, 15),  # x, z, width, depth
+        (20, -1.4, -25, 30, 20),
+        (-15, -1.4, 30, 20, 25),
+        (35, -1.4, 25, 28, 18)
+    ]
+    
+    glColor3f(0.5, 0.5, 0.6)  # Gray stone
+    for px, pz, pw, pd in platform_positions:
+        glBegin(GL_QUADS)
+        glNormal3f(0, 1, 0)
+        glVertex3f(px - pw/2, -1.4, pz - pd/2)
+        glVertex3f(px + pw/2, -1.4, pz - pd/2)
+        glVertex3f(px + pw/2, -1.4, pz + pd/2)
+        glVertex3f(px - pw/2, -1.4, pz + pd/2)
         glEnd()
+
+def draw_urban_environment():
+    """Draw realistic urban environment with buildings, houses, and trees."""
+    # Draw realistic buildings like in reference image
+    draw_realistic_buildings()
     
-    # Add realistic environment details
-    draw_mobile_game_environment()
+    # Draw realistic trees
+    draw_realistic_trees()
+    
+    # Draw urban details
+    draw_urban_details()
 
 def draw_terrain_details():
     """Add detailed terrain features."""
@@ -401,21 +441,114 @@ def draw_single_enhanced_tree(x, y, z, height, crown_size):
         glutSolidSphere(crown_size * scale, 16, 12)
         glPopMatrix()
 
-def draw_enhanced_buildings():
-    """Draw enhanced buildings with realistic architecture."""
+def draw_realistic_buildings():
+    """Draw realistic urban buildings like in the reference image."""
     if not show_environment:
         return
-        
-    building_positions = [
-        (-60, -2.5, -30, 8, 12, 6, 'office'),
-        (-70, -2.5, -25, 6, 8, 4, 'house'),
-        (-65, -2.5, -40, 10, 15, 8, 'tower'),
-        (60, -2.5, -35, 7, 10, 5, 'house'),
-        (70, -2.5, -30, 12, 18, 10, 'office')
+    
+    # Brick buildings (like in reference image)
+    brick_buildings = [
+        # x, y, z, width, height, depth, floors, color_type
+        (-80, -1.5, -40, 15, 25, 12, 6, 'red_brick'),
+        (-60, -1.5, -50, 18, 30, 15, 8, 'brown_brick'),
+        (70, -1.5, -45, 12, 20, 10, 5, 'red_brick'),
+        (85, -1.5, -35, 20, 35, 18, 9, 'brown_brick'),
+        (-90, -1.5, 30, 14, 22, 11, 6, 'red_brick'),
+        (75, -1.5, 40, 16, 28, 13, 7, 'brown_brick'),
+        (-70, -1.5, 50, 13, 18, 9, 4, 'red_brick'),
+        (60, -1.5, 55, 17, 32, 14, 8, 'brown_brick')
     ]
     
-    for x, y, z, w, h, d, building_type in building_positions:
-        draw_single_building(x, y, z, w, h, d, building_type)
+    for x, y, z, w, h, d, floors, color_type in brick_buildings:
+        draw_brick_building(x, y, z, w, h, d, floors, color_type)
+
+def draw_brick_building(x, y, z, width, height, depth, floors, color_type):
+    """Draw a realistic brick building with windows and details."""
+    # Set building material based on type
+    if color_type == 'red_brick':
+        ambient = [0.3, 0.15, 0.1, 1.0]
+        diffuse = [0.7, 0.3, 0.2, 1.0]    # Red brick
+        specular = [0.2, 0.1, 0.05, 1.0]
+        color = (0.7, 0.3, 0.2)
+    else:  # brown_brick
+        ambient = [0.25, 0.2, 0.15, 1.0]
+        diffuse = [0.6, 0.45, 0.3, 1.0]   # Brown brick
+        specular = [0.15, 0.1, 0.08, 1.0]
+        color = (0.6, 0.45, 0.3)
+    
+    shininess = [10.0]
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambient)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse)
+    glMaterialfv(GL_FRONT, GL_SPECULAR, specular)
+    glMaterialfv(GL_FRONT, GL_SHININESS, shininess)
+    
+    # Main building body
+    glColor3f(*color)
+    glPushMatrix()
+    glTranslatef(x, y + height/2, z)
+    glScalef(width, height, depth)
+    glutSolidCube(1.0)
+    glPopMatrix()
+    
+    # Add windows (multiple floors)
+    window_ambient = [0.1, 0.15, 0.3, 1.0]
+    window_diffuse = [0.2, 0.3, 0.6, 1.0]   # Blue windows
+    window_specular = [0.8, 0.8, 1.0, 1.0]  # Reflective
+    window_shininess = [80.0]
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, window_ambient)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, window_diffuse)
+    glMaterialfv(GL_FRONT, GL_SPECULAR, window_specular)
+    glMaterialfv(GL_FRONT, GL_SHININESS, window_shininess)
+    
+    glColor3f(0.2, 0.3, 0.6)  # Blue windows
+    
+    # Draw windows on front and side faces
+    floor_height = height / floors
+    windows_per_floor = max(2, int(width / 4))
+    
+    for floor in range(floors):
+        floor_y = y + floor * floor_height + floor_height * 0.3
+        
+        # Front face windows
+        for window in range(windows_per_floor):
+            window_x = x - width/2 + (window + 0.5) * (width / windows_per_floor)
+            
+            glPushMatrix()
+            glTranslatef(window_x, floor_y, z + depth/2 + 0.1)
+            glScalef(width * 0.08, floor_height * 0.4, 0.1)
+            glutSolidCube(1.0)
+            glPopMatrix()
+        
+        # Side face windows (right side)
+        side_windows = max(1, int(depth / 6))
+        for window in range(side_windows):
+            window_z = z - depth/2 + (window + 0.5) * (depth / side_windows)
+            
+            glPushMatrix()
+            glTranslatef(x + width/2 + 0.1, floor_y, window_z)
+            glScalef(0.1, floor_height * 0.4, depth * 0.06)
+            glutSolidCube(1.0)
+            glPopMatrix()
+    
+    # Add roof details
+    roof_ambient = [0.2, 0.2, 0.25, 1.0]
+    roof_diffuse = [0.4, 0.4, 0.5, 1.0]     # Gray roof
+    roof_specular = [0.3, 0.3, 0.4, 1.0]
+    roof_shininess = [20.0]
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, roof_ambient)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, roof_diffuse)
+    glMaterialfv(GL_FRONT, GL_SPECULAR, roof_specular)
+    glMaterialfv(GL_FRONT, GL_SHININESS, roof_shininess)
+    
+    glColor3f(0.4, 0.4, 0.5)
+    glPushMatrix()
+    glTranslatef(x, y + height + 1.0, z)
+    glScalef(width * 1.1, 2.0, depth * 1.1)
+    glutSolidCube(1.0)
+    glPopMatrix()
 
 def draw_single_building(x, y, z, w, h, d, building_type):
     """Draw a single detailed building."""
@@ -488,29 +621,29 @@ def draw_single_building(x, y, z, w, h, d, building_type):
         glutSolidOctahedron()
     glPopMatrix()
 
-def draw_blue_tubular_track(points, segments=400):
-    """Draw smooth blue tubular track like mobile roller coaster games."""
+def draw_green_tubular_track(points, segments=500):
+    """Draw smooth green tubular track like the reference image."""
     if not show_track:
         return
     
-    # Blue rail material (shiny like mobile games)
-    rail_ambient = [0.1, 0.2, 0.4, 1.0]
-    rail_diffuse = [0.2, 0.5, 0.9, 1.0]     # Bright blue
-    rail_specular = [0.8, 0.9, 1.0, 1.0]    # Shiny highlights
-    rail_shininess = [60.0]
+    # Green rail material (like reference image)
+    rail_ambient = [0.1, 0.3, 0.1, 1.0]
+    rail_diffuse = [0.2, 0.8, 0.2, 1.0]     # Bright green
+    rail_specular = [0.6, 1.0, 0.6, 1.0]    # Shiny green highlights
+    rail_shininess = [70.0]
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, rail_ambient)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, rail_diffuse)
     glMaterialfv(GL_FRONT, GL_SPECULAR, rail_specular)
     glMaterialfv(GL_FRONT, GL_SHININESS, rail_shininess)
     
-    glColor3f(0.2, 0.5, 0.9)  # Bright blue rails
+    glColor3f(0.2, 0.8, 0.2)  # Bright green rails
     
-    # Draw smooth tubular rails
-    rail_positions = [-0.4, 0.4]  # Left and right rails
+    # Draw smooth tubular rails (dual rail system)
+    rail_positions = [-0.35, 0.35]  # Left and right rails
     
     for rail_offset in rail_positions:
-        # Create smooth cylindrical rail
+        # Create ultra-smooth cylindrical rail
         for i in range(segments):
             t1 = i / float(segments)
             t2 = ((i + 1) % segments) / float(segments)
@@ -529,33 +662,77 @@ def draw_blue_tubular_track(points, segments=400):
             rail_center1 = pos1 + right1 * rail_offset
             rail_center2 = pos2 + right2 * rail_offset
             
-            # Draw cylindrical rail segment
-            draw_rail_cylinder(rail_center1, rail_center2, right1, up, rail_radius)
+            # Draw ultra-smooth cylindrical rail segment
+            draw_smooth_rail_cylinder(rail_center1, rail_center2, right1, up, rail_radius)
     
-    # Draw support structures
-    draw_track_supports(points, segments)
+    # Draw green support structures
+    draw_green_track_supports(points, segments)
 
-def draw_rail_cylinder(pos1, pos2, right, up, radius):
-    """Draw a smooth cylindrical rail segment."""
+def draw_smooth_rail_cylinder(pos1, pos2, right, up, radius):
+    """Draw an ultra-smooth cylindrical rail segment."""
     # Calculate rail direction
     direction = normalize_vector(pos2 - pos1)
     length = np.linalg.norm(pos2 - pos1)
+    
+    if length < 0.001:  # Skip very small segments
+        return
     
     glPushMatrix()
     glTranslatef(pos1[0], pos1[1], pos1[2])
     
     # Align cylinder with rail direction
     angle = math.degrees(math.atan2(direction[2], direction[0]))
-    glRotatef(angle, 0, 1, 0)
+    pitch = math.degrees(math.asin(direction[1]))
     
-    # Draw cylinder using GLUT
+    glRotatef(angle, 0, 1, 0)
+    glRotatef(-pitch, 0, 0, 1)
+    
+    # Draw ultra-smooth cylinder
     glPushMatrix()
     glRotatef(90, 0, 1, 0)  # Align with X-axis
-    glScalef(length, radius, radius)
-    glutSolidCylinder(1.0, 1.0, rail_segments, 4)
+    glutSolidCylinder(radius, length, rail_segments, 8)
     glPopMatrix()
     
     glPopMatrix()
+
+def draw_green_track_supports(points, segments):
+    """Draw green support pillars for the track like reference image."""
+    support_spacing = 30  # Every 30th segment gets a support
+    
+    # Green support material (matching track)
+    support_ambient = [0.1, 0.25, 0.1, 1.0]
+    support_diffuse = [0.2, 0.7, 0.2, 1.0]   # Green supports
+    support_specular = [0.4, 0.8, 0.4, 1.0]
+    support_shininess = [30.0]
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, support_ambient)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, support_diffuse)
+    glMaterialfv(GL_FRONT, GL_SPECULAR, support_specular)
+    glMaterialfv(GL_FRONT, GL_SHININESS, support_shininess)
+    
+    glColor3f(0.2, 0.7, 0.2)  # Green supports
+    
+    for i in range(0, segments, support_spacing):
+        t = i / float(segments)
+        pos = np.array(get_point(points, t))
+        
+        # Only add supports where track is elevated
+        if pos[1] > 0.5:
+            support_height = pos[1] + 2.5  # Extend to ground
+            
+            # Main support pillar
+            glPushMatrix()
+            glTranslatef(pos[0], pos[1] - support_height/2, pos[2])
+            glScalef(0.4, support_height, 0.4)
+            glutSolidCylinder(1.0, 1.0, 12, 8)
+            glPopMatrix()
+            
+            # Support cross-beams
+            glPushMatrix()
+            glTranslatef(pos[0], pos[1] - 1.0, pos[2])
+            glScalef(1.2, 0.2, 0.2)
+            glutSolidCube(1.0)
+            glPopMatrix()
 
 def draw_track_supports(points, segments):
     """Draw support pillars for the track like mobile games."""
@@ -588,42 +765,125 @@ def draw_track_supports(points, segments):
             glutSolidCube(1.0)
             glPopMatrix()
 
-def draw_mobile_game_environment():
-    """Draw environment elements like mobile roller coaster games."""
-    # Simple trees scattered around
+def draw_realistic_trees():
+    """Draw realistic trees scattered throughout the urban environment."""
+    # Realistic tree positions (more spread out)
     tree_positions = [
-        (-40, -1.5, -30), (45, -1.2, -35), (-50, -1.8, 25), 
-        (55, -1.4, 30), (-35, -1.6, 40), (40, -1.3, -40),
-        (25, -1.5, 45), (-25, -1.7, -45)
+        (-45, -1.5, -25, 4.5, 'oak'), (-35, -1.5, -35, 3.8, 'pine'),
+        (50, -1.5, -30, 4.2, 'oak'), (40, -1.5, -40, 3.5, 'pine'),
+        (-55, -1.5, 35, 4.0, 'oak'), (-40, -1.5, 45, 3.9, 'pine'),
+        (45, -1.5, 40, 4.3, 'oak'), (35, -1.5, 50, 3.7, 'pine'),
+        (-25, -1.5, -15, 3.6, 'oak'), (25, -1.5, -20, 4.1, 'pine'),
+        (-30, -1.5, 20, 3.8, 'oak'), (30, -1.5, 25, 4.0, 'pine'),
+        (-15, -1.5, -50, 3.9, 'oak'), (20, -1.5, -45, 3.4, 'pine'),
+        (15, -1.5, 60, 4.2, 'oak'), (-20, -1.5, 55, 3.7, 'pine')
     ]
     
-    # Tree material
+    for x, y, z, height, tree_type in tree_positions:
+        draw_single_tree(x, y, z, height, tree_type)
+
+def draw_single_tree(x, y, z, height, tree_type):
+    """Draw a single realistic tree."""
+    # Tree trunk material
     trunk_ambient = [0.2, 0.1, 0.05, 1.0]
-    trunk_diffuse = [0.4, 0.2, 0.1, 1.0]
+    trunk_diffuse = [0.5, 0.3, 0.15, 1.0]   # Brown trunk
+    trunk_specular = [0.1, 0.05, 0.02, 1.0]
+    trunk_shininess = [5.0]
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, trunk_ambient)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, trunk_diffuse)
+    glMaterialfv(GL_FRONT, GL_SPECULAR, trunk_specular)
+    glMaterialfv(GL_FRONT, GL_SHININESS, trunk_shininess)
     
-    for x, y, z in tree_positions:
-        # Tree trunk
-        glColor3f(0.4, 0.2, 0.1)
+    # Draw trunk
+    trunk_radius = height * 0.08
+    glColor3f(0.5, 0.3, 0.15)
+    glPushMatrix()
+    glTranslatef(x, y + height/2, z)
+    glScalef(trunk_radius, height, trunk_radius)
+    glutSolidCylinder(1.0, 1.0, 12, 8)
+    glPopMatrix()
+    
+    # Tree foliage material
+    if tree_type == 'oak':
+        foliage_ambient = [0.1, 0.25, 0.1, 1.0]
+        foliage_diffuse = [0.2, 0.7, 0.2, 1.0]   # Bright green
+        crown_size = height * 0.4
+        crown_layers = 3
+    else:  # pine
+        foliage_ambient = [0.05, 0.2, 0.05, 1.0]
+        foliage_diffuse = [0.15, 0.5, 0.15, 1.0]  # Darker green
+        crown_size = height * 0.25
+        crown_layers = 4
+    
+    foliage_specular = [0.1, 0.2, 0.1, 1.0]
+    foliage_shininess = [15.0]
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, foliage_ambient)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, foliage_diffuse)
+    glMaterialfv(GL_FRONT, GL_SPECULAR, foliage_specular)
+    glMaterialfv(GL_FRONT, GL_SHININESS, foliage_shininess)
+    
+    # Draw foliage
+    if tree_type == 'oak':
+        # Oak tree - round crown
+        glColor3f(0.2, 0.7, 0.2)
         glPushMatrix()
-        glTranslatef(x, y + 1.5, z)
-        glScalef(0.3, 3.0, 0.3)
+        glTranslatef(x, y + height * 0.75, z)
+        glutSolidSphere(crown_size, 16, 12)
+        glPopMatrix()
+        
+        # Additional smaller crowns for realistic shape
+        for i in range(2):
+            offset_x = (i - 0.5) * crown_size * 0.6
+            glPushMatrix()
+            glTranslatef(x + offset_x, y + height * 0.65, z)
+            glutSolidSphere(crown_size * 0.7, 12, 8)
+            glPopMatrix()
+    
+    else:  # pine tree - conical shape
+        glColor3f(0.15, 0.5, 0.15)
+        for layer in range(crown_layers):
+            layer_y = y + height * (0.4 + layer * 0.15)
+            layer_size = crown_size * (1.2 - layer * 0.2)
+            
+            glPushMatrix()
+            glTranslatef(x, layer_y, z)
+            glutSolidCone(layer_size, height * 0.2, 12, 8)
+            glPopMatrix()
+
+def draw_urban_details():
+    """Draw additional urban details like street furniture, etc."""
+    # Street lamps
+    lamp_positions = [
+        (-20, -1.5, -10), (20, -1.5, -15), (-25, -1.5, 15), (25, -1.5, 20)
+    ]
+    
+    # Lamp material
+    lamp_ambient = [0.2, 0.2, 0.2, 1.0]
+    lamp_diffuse = [0.5, 0.5, 0.5, 1.0]   # Gray metal
+    lamp_specular = [0.8, 0.8, 0.8, 1.0]
+    lamp_shininess = [50.0]
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, lamp_ambient)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, lamp_diffuse)
+    glMaterialfv(GL_FRONT, GL_SPECULAR, lamp_specular)
+    glMaterialfv(GL_FRONT, GL_SHININESS, lamp_shininess)
+    
+    glColor3f(0.5, 0.5, 0.5)
+    
+    for lx, ly, lz in lamp_positions:
+        # Lamp post
+        glPushMatrix()
+        glTranslatef(lx, ly + 2.5, lz)
+        glScalef(0.1, 5.0, 0.1)
         glutSolidCylinder(1.0, 1.0, 8, 4)
         glPopMatrix()
         
-        # Tree foliage
-        foliage_ambient = [0.1, 0.3, 0.1, 1.0]
-        foliage_diffuse = [0.2, 0.8, 0.2, 1.0]
-        
-        glMaterialfv(GL_FRONT, GL_AMBIENT, foliage_ambient)
-        glMaterialfv(GL_FRONT, GL_DIFFUSE, foliage_diffuse)
-        
-        glColor3f(0.2, 0.8, 0.2)
+        # Lamp head
         glPushMatrix()
-        glTranslatef(x, y + 4.0, z)
-        glutSolidSphere(2.0, 12, 8)
+        glTranslatef(lx, ly + 4.8, lz)
+        glutSolidSphere(0.3, 12, 8)
         glPopMatrix()
 
 def draw_enhanced_ui():
@@ -718,17 +978,17 @@ def display():
     # Apply ultra-smooth camera system
     apply_realistic_camera(cart_position, cart_forward, current_time, delta_time)
 
-    # Render realistic terrain like mobile games
-    draw_realistic_terrain()
+    # Render urban terrain with buildings and trees
+    draw_urban_terrain()
 
-    # Render blue tubular track system
-    draw_blue_tubular_track(control_points)
+    # Render green tubular track system (like reference image)
+    draw_green_tubular_track(control_points)
 
-    # Render realistic cart
-    draw_realistic_cart(cart_position, cart_forward)
+    # Render stable cart without rotation issues
+    draw_stable_cart(cart_position, cart_forward)
 
-    # Render mobile game UI
-    draw_mobile_game_ui()
+    # Render clean urban UI
+    draw_urban_game_ui()
 
     glutSwapBuffers()
 
@@ -786,13 +1046,13 @@ def idle():
     """Idle function for smooth animation."""
     glutPostRedisplay()
 
-def draw_realistic_cart(pos, forward):
-    """Draw realistic roller coaster cart like mobile games."""
-    # Colorful cart material (bright colors like mobile games)
-    cart_ambient = [0.2, 0.1, 0.05, 1.0]
-    cart_diffuse = [0.9, 0.3, 0.1, 1.0]     # Bright orange/red
-    cart_specular = [0.8, 0.6, 0.4, 1.0]
-    cart_shininess = [30.0]
+def draw_stable_cart(pos, forward):
+    """Draw stable roller coaster cart without unwanted rotation."""
+    # Cart material (red and black like reference image)
+    cart_ambient = [0.2, 0.05, 0.05, 1.0]
+    cart_diffuse = [0.8, 0.1, 0.1, 1.0]     # Red cart body
+    cart_specular = [0.6, 0.3, 0.3, 1.0]
+    cart_shininess = [25.0]
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, cart_ambient)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, cart_diffuse)
@@ -801,80 +1061,104 @@ def draw_realistic_cart(pos, forward):
     
     glPushMatrix()
     
-    # Position cart on track
-    glTranslatef(pos[0], pos[1] + 0.3, pos[2])
+    # Position cart on track (slightly elevated)
+    glTranslatef(pos[0], pos[1] + 0.4, pos[2])
     
-    # Orient cart along track direction
-    up = np.array([0.0, 1.0, 0.0])
-    right = normalize_vector(cross_product(forward, up))
+    # STABLE ORIENTATION - Only rotate around Y-axis, no tilting
+    # Calculate only horizontal rotation to prevent unwanted spinning
+    horizontal_forward = normalize_vector([forward[0], 0.0, forward[2]])
+    angle = math.degrees(math.atan2(horizontal_forward[2], horizontal_forward[0]))
+    glRotatef(angle, 0, 1, 0)  # Only Y-axis rotation for stability
     
-    # Smooth rotation
-    angle = math.degrees(math.atan2(forward[2], forward[0]))
-    glRotatef(angle, 0, 1, 0)
-    
-    # Scale for mobile game proportions
+    # Scale for realistic proportions
     glScalef(cart_scale, cart_scale, cart_scale)
     
-    # Main cart body (bright colored)
-    glColor3f(0.9, 0.3, 0.1)  # Bright orange
+    # Main cart body (red like reference image)
+    glColor3f(0.8, 0.1, 0.1)  # Red body
     glPushMatrix()
-    glScalef(1.4, 0.8, 1.0)
+    glScalef(1.6, 0.6, 1.2)  # Longer cart like reference
     glutSolidCube(1.0)
     glPopMatrix()
     
-    # Cart seats (slightly darker)
-    glColor3f(0.7, 0.2, 0.05)
-    for seat_pos in [-0.3, 0.3]:
+    # Cart seats (black like reference image)
+    seat_ambient = [0.05, 0.05, 0.05, 1.0]
+    seat_diffuse = [0.1, 0.1, 0.1, 1.0]     # Black seats
+    seat_specular = [0.2, 0.2, 0.2, 1.0]
+    seat_shininess = [15.0]
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, seat_ambient)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, seat_diffuse)
+    glMaterialfv(GL_FRONT, GL_SPECULAR, seat_specular)
+    glMaterialfv(GL_FRONT, GL_SHININESS, seat_shininess)
+    
+    glColor3f(0.1, 0.1, 0.1)  # Black seats
+    
+    # Multiple seats in a row (like reference image)
+    seat_positions = [-0.4, -0.1, 0.2, 0.5]  # 4 seats
+    for seat_x in seat_positions:
         glPushMatrix()
-        glTranslatef(seat_pos, 0.3, 0)
-        glScalef(0.4, 0.4, 0.8)
+        glTranslatef(seat_x, 0.2, 0)
+        glScalef(0.25, 0.3, 0.6)
+        glutSolidCube(1.0)
+        glPopMatrix()
+        
+        # Seat backs
+        glPushMatrix()
+        glTranslatef(seat_x, 0.4, -0.25)
+        glScalef(0.25, 0.4, 0.1)
         glutSolidCube(1.0)
         glPopMatrix()
     
-    # Safety bars (metallic)
-    bar_ambient = [0.15, 0.15, 0.2, 1.0]
-    bar_diffuse = [0.4, 0.4, 0.5, 1.0]
-    bar_specular = [0.9, 0.9, 1.0, 1.0]
-    bar_shininess = [80.0]
+    # Safety bars (metallic gray)
+    bar_ambient = [0.15, 0.15, 0.15, 1.0]
+    bar_diffuse = [0.4, 0.4, 0.4, 1.0]
+    bar_specular = [0.8, 0.8, 0.8, 1.0]
+    bar_shininess = [60.0]
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, bar_ambient)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, bar_diffuse)
     glMaterialfv(GL_FRONT, GL_SPECULAR, bar_specular)
     glMaterialfv(GL_FRONT, GL_SHININESS, bar_shininess)
     
-    glColor3f(0.5, 0.5, 0.6)
+    glColor3f(0.4, 0.4, 0.4)  # Gray safety bars
+    
+    # Safety bar across all seats
     glPushMatrix()
-    glTranslatef(0, 0.8, 0.4)
-    glScalef(1.2, 0.1, 0.1)
+    glTranslatef(0, 0.7, 0.3)
+    glScalef(1.4, 0.08, 0.08)
     glutSolidCube(1.0)
     glPopMatrix()
     
-    # Wheels (black with shiny rims)
-    wheel_positions = [(-0.5, -0.5, -0.4), (0.5, -0.5, -0.4), 
-                      (-0.5, -0.5, 0.4), (0.5, -0.5, 0.4)]
-    
-    wheel_ambient = [0.05, 0.05, 0.05, 1.0]
-    wheel_diffuse = [0.1, 0.1, 0.1, 1.0]
-    wheel_specular = [0.3, 0.3, 0.3, 1.0]
-    wheel_shininess = [20.0]
+    # Wheels (black with realistic positioning)
+    wheel_ambient = [0.02, 0.02, 0.02, 1.0]
+    wheel_diffuse = [0.05, 0.05, 0.05, 1.0]
+    wheel_specular = [0.1, 0.1, 0.1, 1.0]
+    wheel_shininess = [10.0]
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, wheel_ambient)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, wheel_diffuse)
     glMaterialfv(GL_FRONT, GL_SPECULAR, wheel_specular)
     glMaterialfv(GL_FRONT, GL_SHININESS, wheel_shininess)
     
-    glColor3f(0.1, 0.1, 0.1)
+    glColor3f(0.05, 0.05, 0.05)  # Very dark wheels
+    
+    # Realistic wheel positions (under the cart)
+    wheel_positions = [
+        (-0.6, -0.5, -0.4), (0.6, -0.5, -0.4),   # Front wheels
+        (-0.6, -0.5, 0.4), (0.6, -0.5, 0.4)      # Rear wheels
+    ]
     
     for wx, wy, wz in wheel_positions:
         glPushMatrix()
         glTranslatef(wx, wy, wz)
-        glutSolidSphere(0.18, 16, 12)
+        glRotatef(90, 1, 0, 0)  # Rotate wheels to correct orientation
+        glutSolidCylinder(0.15, 0.1, 12, 8)  # Wheel shape
         glPopMatrix()
     
     glPopMatrix()
 
-def draw_mobile_game_ui():
-    """Draw clean UI like mobile roller coaster games."""
+def draw_urban_game_ui():
+    """Draw clean urban game UI like the reference image."""
     if not show_cart_info:
         return
     
@@ -894,48 +1178,64 @@ def draw_mobile_game_ui():
     glPushMatrix()
     glLoadIdentity()
     
-    # Clean background panel (top-left)
-    glColor4f(0.0, 0.0, 0.0, 0.4)  # Semi-transparent black
+    # Modern UI panel (top-left)
+    glColor4f(0.1, 0.1, 0.1, 0.6)  # Dark semi-transparent
     glBegin(GL_QUADS)
-    glVertex2f(10, WINDOW_HEIGHT - 100)
-    glVertex2f(350, WINDOW_HEIGHT - 100)
-    glVertex2f(350, WINDOW_HEIGHT - 10)
-    glVertex2f(10, WINDOW_HEIGHT - 10)
+    glVertex2f(15, WINDOW_HEIGHT - 110)
+    glVertex2f(380, WINDOW_HEIGHT - 110)
+    glVertex2f(380, WINDOW_HEIGHT - 15)
+    glVertex2f(15, WINDOW_HEIGHT - 15)
     glEnd()
     
-    # Speed indicator
-    glColor3f(1.0, 1.0, 1.0)  # White text
-    glRasterPos2f(20, WINDOW_HEIGHT - 30)
-    speed_text = f"Speed: {speed:.3f}"
+    # Speed indicator with modern styling
+    glColor3f(0.2, 0.8, 0.2)  # Green text (matching track)
+    glRasterPos2f(25, WINDOW_HEIGHT - 35)
+    speed_text = f"SPEED: {speed:.3f}"
     for char in speed_text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
     
-    # Camera mode
-    glRasterPos2f(20, WINDOW_HEIGHT - 50)
-    camera_names = {1: "Third-Person", 2: "First-Person", 3: "Free-Fly"}
-    camera_text = f"Camera: {camera_names.get(camera_mode, 'Unknown')}"
+    # Camera mode indicator
+    glColor3f(0.9, 0.9, 1.0)  # Light blue
+    glRasterPos2f(25, WINDOW_HEIGHT - 55)
+    camera_names = {1: "THIRD-PERSON", 2: "FIRST-PERSON", 3: "FREE-FLY"}
+    camera_text = f"CAMERA: {camera_names.get(camera_mode, 'UNKNOWN')}"
     for char in camera_text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
     
-    # Status
-    glRasterPos2f(20, WINDOW_HEIGHT - 70)
-    status_text = f"Status: {'PAUSED' if paused else 'RUNNING'}"
+    # Status indicator
+    status_color = (1.0, 0.3, 0.3) if paused else (0.3, 1.0, 0.3)
+    glColor3f(*status_color)
+    glRasterPos2f(25, WINDOW_HEIGHT - 75)
+    status_text = f"STATUS: {'PAUSED' if paused else 'RUNNING'}"
     for char in status_text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
     
-    # Controls (bottom)
-    glColor4f(0.0, 0.0, 0.0, 0.3)
+    # Environment info
+    glColor3f(0.8, 0.8, 0.9)
+    glRasterPos2f(25, WINDOW_HEIGHT - 95)
+    env_text = f"ENVIRONMENT: {'ON' if show_environment else 'OFF'} | TRACK: {'ON' if show_track else 'OFF'}"
+    for char in env_text:
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(char))
+    
+    # Modern control panel (bottom)
+    glColor4f(0.05, 0.05, 0.05, 0.7)
     glBegin(GL_QUADS)
-    glVertex2f(10, 10)
-    glVertex2f(WINDOW_WIDTH - 10, 10)
-    glVertex2f(WINDOW_WIDTH - 10, 60)
-    glVertex2f(10, 60)
+    glVertex2f(15, 15)
+    glVertex2f(WINDOW_WIDTH - 15, 15)
+    glVertex2f(WINDOW_WIDTH - 15, 70)
+    glVertex2f(15, 70)
     glEnd()
     
+    # Controls text
     glColor3f(0.9, 0.9, 0.9)
-    glRasterPos2f(20, 40)
-    controls_text = "W/S: Speed | P/SPACE: Pause | C: Camera | I: Info | T: Track | E: Environment | ESC: Quit"
+    glRasterPos2f(25, 50)
+    controls_text = "CONTROLS: W/S=Speed | SPACE=Pause | C=Camera | I=Info | T=Track | E=Environment | ESC=Exit"
     for char in controls_text:
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(char))
+    
+    glRasterPos2f(25, 30)
+    info_text = "URBAN ROLLER COASTER SIMULATION - Realistic Graphics & Smooth Animation"
+    for char in info_text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(char))
     
     # Restore matrices
