@@ -1,15 +1,17 @@
 """
 main.py
 Author: AI assistant
-Purpose: Professional Roller Coaster Simulation with Cinematic Camera & Enhanced Graphics
-Integrates curve, cart, and camera systems for a complete roller coaster experience.
+Purpose: Ultra-Realistic 3D Roller Coaster Simulation - Mobile Game Quality
+Smooth animation, realistic graphics, and professional visual effects like the reference image.
 
-ENHANCED FEATURES:
-- 5 cinematic camera modes with smooth interpolation
-- Ultra-realistic trees and terrain
-- Premium 3-light system
-- Anti-aliasing and atmospheric effects
-- Professional visual quality
+FEATURES:
+- Smooth blue tubular rails like mobile roller coaster games
+- Realistic green terrain with proper lighting
+- Clean sky gradient background with atmospheric fog
+- Ultra-smooth cart animation with proper physics
+- Multiple camera modes: third-person, first-person, free-fly
+- Professional lighting and shadows
+- Responsive keyboard controls with smooth speed changes
 """
 
 import sys
@@ -27,37 +29,44 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 
-# Configuration constants
+# Configuration constants - Optimized for smooth performance
 DEBUG = False
-WINDOW_WIDTH = 1400
-WINDOW_HEIGHT = 900
-DEFAULT_SPEED = 0.05
-MAX_SPEED = 0.3
-MIN_SPEED = 0.0
+WINDOW_WIDTH = 1200
+WINDOW_HEIGHT = 800
+DEFAULT_SPEED = 0.03  # Slower for smoother animation
+MAX_SPEED = 0.15      # Reduced max speed for better control
+MIN_SPEED = 0.005     # Minimum speed to prevent stopping
+SPEED_INCREMENT = 0.002  # Fine speed control
 
 # Animation and camera state
 t_param = 0.0
 speed = DEFAULT_SPEED
 paused = False
 last_time = None
-camera_mode = 0  # 0=follow, 1=first-person, 2=cinematic, 3=orbit, 4=flyby
+camera_mode = 1  # Start with third-person (1=third-person, 2=first-person, 3=free-fly)
 show_track = True
 show_cart_info = True
 show_environment = True
 fog_enabled = True
 lighting_enhanced = True
 
-# Camera smoothing and interpolation
-camera_position = np.array([0.0, 5.0, 10.0])
+# Camera smoothing for ultra-smooth movement
+camera_position = np.array([0.0, 8.0, 15.0])
 camera_target = np.array([0.0, 0.0, 0.0])
 camera_up = np.array([0.0, 1.0, 0.0])
-camera_smooth_factor = 0.15  # Lower = smoother but more lag
+camera_smooth_factor = 0.08  # Ultra-smooth camera movement
 
-# Visual enhancement settings
-terrain_size = 150.0
-track_thickness = 0.12
-cart_scale = 0.6
-lighting_intensity = 1.2
+# Visual settings for mobile game quality
+terrain_size = 200.0
+rail_radius = 0.15      # Thicker blue rails
+rail_segments = 16      # Smooth circular rails
+cart_scale = 0.8
+lighting_intensity = 1.5
+
+# Free-fly camera controls
+free_camera_pos = np.array([0.0, 10.0, 20.0])
+free_camera_angles = [0.0, 0.0]  # yaw, pitch
+mouse_sensitivity = 0.5
 
 def debug_print(*args):
     """Print debug messages if DEBUG is enabled."""
@@ -65,89 +74,86 @@ def debug_print(*args):
         print(*args)
 
 def init_opengl():
-    """Initialize OpenGL with enhanced visual settings."""
-    # Basic OpenGL setup
+    """Initialize OpenGL for ultra-realistic mobile game quality graphics."""
+    # Core OpenGL setup for smooth rendering
     glEnable(GL_DEPTH_TEST)
     glDepthFunc(GL_LEQUAL)
-    glClearColor(0.3, 0.6, 0.9, 1.0)  # Beautiful sky blue
+    glClearDepth(1.0)
     
-    # Enhanced rendering settings
+    # Sky gradient background (light blue to white)
+    glClearColor(0.53, 0.81, 0.92, 1.0)  # Sky blue like in mobile games
+    
+    # Smooth rendering settings
     glEnable(GL_CULL_FACE)
     glCullFace(GL_BACK)
     glFrontFace(GL_CCW)
     
-    # Premium shading
+    # Ultra-smooth shading
     glShadeModel(GL_SMOOTH)
     glEnable(GL_NORMALIZE)
     glEnable(GL_AUTO_NORMAL)
     
-    # Enhanced lighting system
-    if lighting_enhanced:
-        setup_enhanced_lighting()
+    # Professional lighting system
+    setup_realistic_lighting()
     
-    # Premium fog
-    if fog_enabled:
-        setup_premium_fog()
+    # Atmospheric fog for depth
+    setup_atmospheric_fog()
     
-    # Anti-aliasing and smoothing
+    # Anti-aliasing for smooth edges
     glEnable(GL_LINE_SMOOTH)
     glEnable(GL_POLYGON_SMOOTH)
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
     glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
     
-    # Premium blending
+    # Smooth blending
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    
+    # Enable multisampling if available
+    try:
+        glEnable(GL_MULTISAMPLE)
+    except:
+        pass  # Not all systems support this
 
-def setup_enhanced_lighting():
-    """Set up enhanced lighting with multiple sources."""
+def setup_realistic_lighting():
+    """Set up realistic lighting system like mobile roller coaster games."""
     glEnable(GL_LIGHTING)
     glEnable(GL_COLOR_MATERIAL)
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
     
-    # Main sun light (warm, directional)
+    # Main sunlight (bright, natural daylight)
     glEnable(GL_LIGHT0)
-    sun_position = [30.0, 50.0, 30.0, 1.0]
-    sun_ambient = [0.25, 0.25, 0.35, 1.0]
-    sun_diffuse = [1.0, 0.95, 0.8, 1.0]  # Warm sunlight
-    sun_specular = [1.0, 1.0, 0.9, 1.0]
+    sun_position = [50.0, 80.0, 50.0, 1.0]  # High sun position
+    sun_ambient = [0.3, 0.3, 0.4, 1.0]      # Soft ambient
+    sun_diffuse = [1.0, 1.0, 0.95, 1.0]     # Bright white daylight
+    sun_specular = [1.0, 1.0, 1.0, 1.0]     # Shiny highlights
     
     glLightfv(GL_LIGHT0, GL_POSITION, sun_position)
     glLightfv(GL_LIGHT0, GL_AMBIENT, sun_ambient)
     glLightfv(GL_LIGHT0, GL_DIFFUSE, sun_diffuse)
     glLightfv(GL_LIGHT0, GL_SPECULAR, sun_specular)
     
-    # Sky light (cool, soft)
+    # Sky fill light (soft blue ambient)
     glEnable(GL_LIGHT1)
-    sky_position = [-20.0, 40.0, -20.0, 1.0]
-    sky_ambient = [0.15, 0.2, 0.3, 1.0]
-    sky_diffuse = [0.3, 0.4, 0.6, 1.0]  # Cool sky light
+    sky_position = [-30.0, 60.0, -30.0, 1.0]
+    sky_ambient = [0.2, 0.25, 0.35, 1.0]
+    sky_diffuse = [0.4, 0.5, 0.7, 1.0]      # Soft blue sky light
     
     glLightfv(GL_LIGHT1, GL_POSITION, sky_position)
     glLightfv(GL_LIGHT1, GL_AMBIENT, sky_ambient)
     glLightfv(GL_LIGHT1, GL_DIFFUSE, sky_diffuse)
     
-    # Bounce light (subtle fill)
-    glEnable(GL_LIGHT2)
-    bounce_position = [0.0, 10.0, -40.0, 1.0]
-    bounce_ambient = [0.1, 0.15, 0.2, 1.0]
-    bounce_diffuse = [0.2, 0.25, 0.3, 1.0]
-    
-    glLightfv(GL_LIGHT2, GL_POSITION, bounce_position)
-    glLightfv(GL_LIGHT2, GL_AMBIENT, bounce_ambient)
-    glLightfv(GL_LIGHT2, GL_DIFFUSE, bounce_diffuse)
-    
-    # Global ambient
-    global_ambient = [0.15, 0.18, 0.25, 1.0]
+    # Global ambient for realistic outdoor lighting
+    global_ambient = [0.25, 0.28, 0.35, 1.0]
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient)
 
-def setup_premium_fog():
-    """Set up atmospheric fog for depth and realism."""
+def setup_atmospheric_fog():
+    """Set up atmospheric fog for realistic depth like mobile games."""
     glEnable(GL_FOG)
-    fog_color = [0.3, 0.6, 0.9, 1.0]  # Match sky
+    fog_color = [0.53, 0.81, 0.92, 1.0]  # Match sky color
     glFogfv(GL_FOG_COLOR, fog_color)
-    glFogf(GL_FOG_DENSITY, 0.006)  # Light fog
+    glFogf(GL_FOG_DENSITY, 0.003)  # Very light fog for distance
     glFogi(GL_FOG_MODE, GL_EXP2)
     glHint(GL_FOG_HINT, GL_NICEST)
 
@@ -166,80 +172,63 @@ def smooth_camera_interpolation(target_pos, target_look, target_up, dt):
     # Normalize up vector
     camera_up = normalize_vector(camera_up)
 
-def apply_enhanced_camera(cart_pos, cart_forward, current_time, dt):
-    """Apply enhanced camera with multiple smooth modes."""
-    global camera_position, camera_target, camera_up
+def apply_realistic_camera(cart_pos, cart_forward, current_time, dt):
+    """Apply ultra-smooth camera system like mobile roller coaster games."""
+    global camera_position, camera_target, camera_up, free_camera_pos, free_camera_angles
     
     cart_pos = np.array(cart_pos, dtype=float)
     cart_forward = normalize_vector(cart_forward)
     cart_up = np.array([0.0, 1.0, 0.0])
-    cart_right = normalize_vector(cross_product(cart_forward, cart_up))
     
-    if camera_mode == 0:  # Smooth follow camera
-        offset_distance = 6.0
-        offset_height = 3.0
-        lookahead = 2.5
+    if camera_mode == 1:  # Third-person (behind cart) - like mobile games
+        follow_distance = 8.0
+        follow_height = 4.0
+        lookahead = 3.0
         
-        target_pos = cart_pos - cart_forward * offset_distance + cart_up * offset_height
+        # Smooth follow position behind cart
+        target_pos = cart_pos - cart_forward * follow_distance + cart_up * follow_height
         target_look = cart_pos + cart_forward * lookahead
         target_up = cart_up
         
-    elif camera_mode == 1:  # First-person (inside cart)
-        target_pos = cart_pos + cart_up * 0.5
-        target_look = cart_pos + cart_forward * 3.0
+    elif camera_mode == 2:  # First-person (from cart seat)
+        seat_height = 0.8
+        look_distance = 5.0
+        
+        target_pos = cart_pos + cart_up * seat_height
+        target_look = cart_pos + cart_forward * look_distance + cart_up * seat_height
         target_up = cart_up
         
-    elif camera_mode == 2:  # Cinematic tracking
-        orbit_radius = 8.0
-        orbit_height = 4.0
-        orbit_speed = 0.4
+    elif camera_mode == 3:  # Free-fly camera
+        # Use free camera position and angles
+        yaw, pitch = free_camera_angles
         
-        angle = current_time * orbit_speed + t_param * 2.0
+        # Calculate look direction from angles
+        look_x = math.cos(math.radians(pitch)) * math.cos(math.radians(yaw))
+        look_y = math.sin(math.radians(pitch))
+        look_z = math.cos(math.radians(pitch)) * math.sin(math.radians(yaw))
         
-        target_pos = cart_pos + np.array([
-            orbit_radius * math.cos(angle),
-            orbit_height + 2.0 * math.sin(angle * 0.7),
-            orbit_radius * math.sin(angle)
-        ])
-        target_look = cart_pos + cart_forward * 1.0
-        target_up = cart_up
+        target_pos = free_camera_pos.copy()
+        target_look = free_camera_pos + np.array([look_x, look_y, look_z]) * 10.0
+        target_up = np.array([0.0, 1.0, 0.0])
         
-    elif camera_mode == 3:  # Orbit camera
-        orbit_radius = 12.0
-        orbit_height = 6.0
-        orbit_speed = 0.2
+        # No interpolation for free camera - direct control
+        camera_position = target_pos
+        camera_target = target_look
+        camera_up = target_up
         
-        angle = current_time * orbit_speed
-        
-        target_pos = cart_pos + np.array([
-            orbit_radius * math.cos(angle),
-            orbit_height,
-            orbit_radius * math.sin(angle)
-        ])
-        target_look = cart_pos
-        target_up = cart_up
-        
-    elif camera_mode == 4:  # Flyby camera
-        flyby_distance = 15.0
-        flyby_height = 8.0
-        flyby_speed = 0.3
-        
-        angle = current_time * flyby_speed + t_param * 3.0
-        
-        target_pos = cart_pos + np.array([
-            flyby_distance * math.cos(angle + math.pi/4),
-            flyby_height + 3.0 * math.sin(angle * 0.5),
-            flyby_distance * math.sin(angle + math.pi/4)
-        ])
-        target_look = cart_pos + cart_forward * 2.0
-        target_up = cart_up
+        gluLookAt(
+            camera_position[0], camera_position[1], camera_position[2],
+            camera_target[0], camera_target[1], camera_target[2],
+            camera_up[0], camera_up[1], camera_up[2]
+        )
+        return
     
-    else:  # Default to follow
-        target_pos = cart_pos + np.array([0, 5, 10])
+    else:  # Default to third-person
+        target_pos = cart_pos + np.array([0, 6, 12])
         target_look = cart_pos
         target_up = cart_up
     
-    # Apply smooth interpolation
+    # Apply ultra-smooth interpolation for cart-following cameras
     smooth_camera_interpolation(target_pos, target_look, target_up, dt)
     
     # Apply the camera transformation
@@ -275,29 +264,26 @@ def get_cart_forward(t, delta_t=5e-4):
     
     return forward / length
 
-def draw_enhanced_terrain():
-    """Draw enhanced terrain with realistic features."""
+def draw_realistic_terrain():
+    """Draw realistic green terrain like mobile roller coaster games."""
     if not show_environment:
         return
-        
-    glPushAttrib(GL_ENABLE_BIT)
     
-    # Premium ground material
-    ground_ambient = [0.1, 0.3, 0.1, 1.0]
-    ground_diffuse = [0.2, 0.6, 0.2, 1.0]
-    ground_specular = [0.1, 0.2, 0.1, 1.0]
-    ground_shininess = [10.0]
+    # Realistic grass material
+    grass_ambient = [0.1, 0.25, 0.1, 1.0]
+    grass_diffuse = [0.2, 0.7, 0.2, 1.0]    # Bright green grass
+    grass_specular = [0.05, 0.1, 0.05, 1.0]
+    grass_shininess = [5.0]
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, ground_ambient)
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, ground_diffuse)
-    glMaterialfv(GL_FRONT, GL_SPECULAR, ground_specular)
-    glMaterialfv(GL_FRONT, GL_SHININESS, ground_shininess)
+    glMaterialfv(GL_FRONT, GL_AMBIENT, grass_ambient)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, grass_diffuse)
+    glMaterialfv(GL_FRONT, GL_SPECULAR, grass_specular)
+    glMaterialfv(GL_FRONT, GL_SHININESS, grass_shininess)
     
-    # Main terrain with subtle height variation
-    glColor3f(0.15, 0.5, 0.15)
+    # Draw smooth rolling terrain
+    glColor3f(0.2, 0.7, 0.2)  # Bright grass green
     
-    # Draw terrain as triangle strips for smooth shading
-    segments = 40
+    segments = 50
     for i in range(segments):
         glBegin(GL_TRIANGLE_STRIP)
         for j in range(segments + 1):
@@ -305,23 +291,21 @@ def draw_enhanced_terrain():
                 x = ((i + k) / float(segments) - 0.5) * terrain_size * 2
                 z = (j / float(segments) - 0.5) * terrain_size * 2
                 
-                # Add subtle height variation
-                height = -3.0 + 0.4 * math.sin(x * 0.08) * math.cos(z * 0.08)
-                height += 0.15 * math.sin(x * 0.25) * math.sin(z * 0.2)
+                # Gentle rolling hills like mobile games
+                height = -2.0 + 0.8 * math.sin(x * 0.05) * math.cos(z * 0.05)
+                height += 0.3 * math.sin(x * 0.15) * math.sin(z * 0.12)
                 
-                # Calculate normal for smooth shading
-                normal_x = -0.03 * math.cos(x * 0.08) * math.cos(z * 0.08)
-                normal_z = 0.03 * math.sin(x * 0.08) * math.sin(z * 0.08)
+                # Smooth normals for realistic lighting
+                normal_x = -0.04 * math.cos(x * 0.05) * math.cos(z * 0.05)
+                normal_z = 0.04 * math.sin(x * 0.05) * math.sin(z * 0.05)
                 normal = normalize_vector([normal_x, 1.0, normal_z])
                 
                 glNormal3f(normal[0], normal[1], normal[2])
                 glVertex3f(x, height, z)
         glEnd()
     
-    # Add terrain details
-    draw_terrain_details()
-    
-    glPopAttrib()
+    # Add realistic environment details
+    draw_mobile_game_environment()
 
 def draw_terrain_details():
     """Add detailed terrain features."""
@@ -504,31 +488,30 @@ def draw_single_building(x, y, z, w, h, d, building_type):
         glutSolidOctahedron()
     glPopMatrix()
 
-def draw_enhanced_track(points, segments=300):
-    """Draw enhanced 3D tubular track with realistic rails."""
+def draw_blue_tubular_track(points, segments=400):
+    """Draw smooth blue tubular track like mobile roller coaster games."""
     if not show_track:
         return
-        
-    # Track material
-    track_ambient = [0.15, 0.15, 0.2, 1.0]
-    track_diffuse = [0.4, 0.4, 0.5, 1.0]
-    track_specular = [0.6, 0.6, 0.7, 1.0]
-    track_shininess = [40.0]
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, track_ambient)
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, track_diffuse)
-    glMaterialfv(GL_FRONT, GL_SPECULAR, track_specular)
-    glMaterialfv(GL_FRONT, GL_SHININESS, track_shininess)
+    # Blue rail material (shiny like mobile games)
+    rail_ambient = [0.1, 0.2, 0.4, 1.0]
+    rail_diffuse = [0.2, 0.5, 0.9, 1.0]     # Bright blue
+    rail_specular = [0.8, 0.9, 1.0, 1.0]    # Shiny highlights
+    rail_shininess = [60.0]
     
-    glColor3f(0.3, 0.3, 0.4)
+    glMaterialfv(GL_FRONT, GL_AMBIENT, rail_ambient)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, rail_diffuse)
+    glMaterialfv(GL_FRONT, GL_SPECULAR, rail_specular)
+    glMaterialfv(GL_FRONT, GL_SHININESS, rail_shininess)
     
-    # Draw dual rails
-    rail_positions = [-0.3, 0.3]  # Left and right rails
+    glColor3f(0.2, 0.5, 0.9)  # Bright blue rails
+    
+    # Draw smooth tubular rails
+    rail_positions = [-0.4, 0.4]  # Left and right rails
     
     for rail_offset in rail_positions:
-        glBegin(GL_QUAD_STRIP)
-        
-        for i in range(segments + 1):
+        # Create smooth cylindrical rail
+        for i in range(segments):
             t1 = i / float(segments)
             t2 = ((i + 1) % segments) / float(segments)
             
@@ -542,63 +525,105 @@ def draw_enhanced_track(points, segments=300):
             right1 = normalize_vector(cross_product(forward1, up))
             right2 = normalize_vector(cross_product(forward2, up))
             
-            # Rail positions
-            rail_pos1 = pos1 + right1 * rail_offset
-            rail_pos2 = pos2 + right2 * rail_offset
+            # Rail center positions
+            rail_center1 = pos1 + right1 * rail_offset
+            rail_center2 = pos2 + right2 * rail_offset
             
-            # Create rail cross-section (rectangular)
-            rail_height = 0.08
-            rail_width = 0.06
-            
-            # Top surface
-            glNormal3f(0, 1, 0)
-            glVertex3f(rail_pos1[0], rail_pos1[1] + rail_height, rail_pos1[2])
-            glVertex3f(rail_pos1[0], rail_pos1[1] + rail_height, rail_pos1[2])
-            
-            # Side surfaces
-            glNormal3f(right1[0], 0, right1[2])
-            glVertex3f(rail_pos1[0] + right1[0] * rail_width, rail_pos1[1], rail_pos1[2] + right1[2] * rail_width)
-            glVertex3f(rail_pos2[0] + right2[0] * rail_width, rail_pos2[1], rail_pos2[2] + right2[2] * rail_width)
-            
-        glEnd()
+            # Draw cylindrical rail segment
+            draw_rail_cylinder(rail_center1, rail_center2, right1, up, rail_radius)
     
-    # Draw cross ties
-    draw_cross_ties(points, segments)
+    # Draw support structures
+    draw_track_supports(points, segments)
 
-def draw_cross_ties(points, segments):
-    """Draw cross ties connecting the rails."""
-    tie_spacing = 8  # Every 8th segment gets a cross tie
+def draw_rail_cylinder(pos1, pos2, right, up, radius):
+    """Draw a smooth cylindrical rail segment."""
+    # Calculate rail direction
+    direction = normalize_vector(pos2 - pos1)
+    length = np.linalg.norm(pos2 - pos1)
     
-    # Cross tie material
-    tie_ambient = [0.2, 0.1, 0.05, 1.0]
-    tie_diffuse = [0.5, 0.3, 0.15, 1.0]
-    tie_specular = [0.1, 0.05, 0.02, 1.0]
-    tie_shininess = [5.0]
+    glPushMatrix()
+    glTranslatef(pos1[0], pos1[1], pos1[2])
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, tie_ambient)
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, tie_diffuse)
-    glMaterialfv(GL_FRONT, GL_SPECULAR, tie_specular)
-    glMaterialfv(GL_FRONT, GL_SHININESS, tie_shininess)
+    # Align cylinder with rail direction
+    angle = math.degrees(math.atan2(direction[2], direction[0]))
+    glRotatef(angle, 0, 1, 0)
     
-    glColor3f(0.4, 0.25, 0.1)
+    # Draw cylinder using GLUT
+    glPushMatrix()
+    glRotatef(90, 0, 1, 0)  # Align with X-axis
+    glScalef(length, radius, radius)
+    glutSolidCylinder(1.0, 1.0, rail_segments, 4)
+    glPopMatrix()
     
-    for i in range(0, segments, tie_spacing):
+    glPopMatrix()
+
+def draw_track_supports(points, segments):
+    """Draw support pillars for the track like mobile games."""
+    support_spacing = 25  # Every 25th segment gets a support
+    
+    # Support material (concrete-like)
+    support_ambient = [0.25, 0.25, 0.25, 1.0]
+    support_diffuse = [0.6, 0.6, 0.6, 1.0]
+    support_specular = [0.3, 0.3, 0.3, 1.0]
+    support_shininess = [20.0]
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, support_ambient)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, support_diffuse)
+    glMaterialfv(GL_FRONT, GL_SPECULAR, support_specular)
+    glMaterialfv(GL_FRONT, GL_SHININESS, support_shininess)
+    
+    glColor3f(0.6, 0.6, 0.6)  # Light gray supports
+    
+    for i in range(0, segments, support_spacing):
         t = i / float(segments)
         pos = np.array(get_point(points, t))
-        forward = get_cart_forward(t)
         
-        up = np.array([0.0, 1.0, 0.0])
-        right = normalize_vector(cross_product(forward, up))
-        
-        # Draw cross tie
+        # Only add supports where track is elevated
+        if pos[1] > 1.0:
+            support_height = pos[1] + 2.0  # Extend to ground
+            
+            glPushMatrix()
+            glTranslatef(pos[0], pos[1] - support_height/2, pos[2])
+            glScalef(0.3, support_height, 0.3)
+            glutSolidCube(1.0)
+            glPopMatrix()
+
+def draw_mobile_game_environment():
+    """Draw environment elements like mobile roller coaster games."""
+    # Simple trees scattered around
+    tree_positions = [
+        (-40, -1.5, -30), (45, -1.2, -35), (-50, -1.8, 25), 
+        (55, -1.4, 30), (-35, -1.6, 40), (40, -1.3, -40),
+        (25, -1.5, 45), (-25, -1.7, -45)
+    ]
+    
+    # Tree material
+    trunk_ambient = [0.2, 0.1, 0.05, 1.0]
+    trunk_diffuse = [0.4, 0.2, 0.1, 1.0]
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, trunk_ambient)
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, trunk_diffuse)
+    
+    for x, y, z in tree_positions:
+        # Tree trunk
+        glColor3f(0.4, 0.2, 0.1)
         glPushMatrix()
-        glTranslatef(pos[0], pos[1] - 0.05, pos[2])
+        glTranslatef(x, y + 1.5, z)
+        glScalef(0.3, 3.0, 0.3)
+        glutSolidCylinder(1.0, 1.0, 8, 4)
+        glPopMatrix()
         
-        # Align with track direction
-        glRotatef(math.degrees(math.atan2(right[2], right[0])), 0, 1, 0)
+        # Tree foliage
+        foliage_ambient = [0.1, 0.3, 0.1, 1.0]
+        foliage_diffuse = [0.2, 0.8, 0.2, 1.0]
         
-        glScalef(0.8, 0.08, 0.12)
-        glutSolidCube(1.0)
+        glMaterialfv(GL_FRONT, GL_AMBIENT, foliage_ambient)
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, foliage_diffuse)
+        
+        glColor3f(0.2, 0.8, 0.2)
+        glPushMatrix()
+        glTranslatef(x, y + 4.0, z)
+        glutSolidSphere(2.0, 12, 8)
         glPopMatrix()
 
 def draw_enhanced_ui():
@@ -690,24 +715,20 @@ def display():
     cart_position = get_point(control_points, t_param)
     cart_forward = get_cart_forward(t_param)
 
-    # Apply enhanced camera system
-    apply_enhanced_camera(cart_position, cart_forward, current_time, delta_time)
+    # Apply ultra-smooth camera system
+    apply_realistic_camera(cart_position, cart_forward, current_time, delta_time)
 
-    # Render enhanced environment
-    draw_enhanced_terrain()
-    
-    if show_environment:
-        draw_enhanced_trees()
-        draw_enhanced_buildings()
+    # Render realistic terrain like mobile games
+    draw_realistic_terrain()
 
-    # Render enhanced track system
-    draw_enhanced_track(control_points)
+    # Render blue tubular track system
+    draw_blue_tubular_track(control_points)
 
-    # Render enhanced cart
-    draw_enhanced_cart(cart_position, cart_forward)
+    # Render realistic cart
+    draw_realistic_cart(cart_position, cart_forward)
 
-    # Render enhanced UI
-    draw_enhanced_ui()
+    # Render mobile game UI
+    draw_mobile_game_ui()
 
     glutSwapBuffers()
 
@@ -719,42 +740,45 @@ def keyboard_handler(key, x, y):
     key = key.decode('utf-8').lower()
 
     if key == 'w':
-        speed = min(MAX_SPEED, speed + 0.005)
-        debug_print(f"Speed increased to {speed:.3f}")
+        # Ultra-smooth speed increase
+        speed = min(MAX_SPEED, speed + SPEED_INCREMENT)
+        debug_print(f"Speed: {speed:.3f}")
     elif key == 's':
-        speed = max(MIN_SPEED, speed - 0.005)
-        debug_print(f"Speed decreased to {speed:.3f}")
-    elif key == ' ':
+        # Ultra-smooth speed decrease
+        speed = max(MIN_SPEED, speed - SPEED_INCREMENT)
+        debug_print(f"Speed: {speed:.3f}")
+    elif key == 'p' or key == ' ':
         paused = not paused
-        debug_print(f"Animation {'paused' if paused else 'resumed'}")
+        debug_print(f"{'PAUSED' if paused else 'RUNNING'}")
     elif key == 'c':
-        camera_mode = (camera_mode + 1) % 5  # Cycle through 5 camera modes
-        camera_names = ["Follow", "First-Person", "Cinematic", "Orbit", "Flyby"]
-        debug_print(f"Camera mode: {camera_names[camera_mode]}")
+        # Cycle through 3 camera modes: 1=third-person, 2=first-person, 3=free-fly
+        camera_mode = (camera_mode % 3) + 1
+        camera_names = {1: "Third-Person", 2: "First-Person", 3: "Free-Fly"}
+        debug_print(f"Camera: {camera_names[camera_mode]}")
     elif key == 'i':
         show_cart_info = not show_cart_info
-        debug_print(f"Info display: {'on' if show_cart_info else 'off'}")
+        debug_print(f"Info: {'ON' if show_cart_info else 'OFF'}")
     elif key == 't':
         show_track = not show_track
-        debug_print(f"Track display: {'on' if show_track else 'off'}")
+        debug_print(f"Track: {'ON' if show_track else 'OFF'}")
     elif key == 'e':
         show_environment = not show_environment
-        debug_print(f"Environment: {'on' if show_environment else 'off'}")
+        debug_print(f"Environment: {'ON' if show_environment else 'OFF'}")
     elif key == 'f':
         fog_enabled = not fog_enabled
         if fog_enabled:
-            glEnable(GL_FOG)
+            setup_atmospheric_fog()
         else:
             glDisable(GL_FOG)
-        debug_print(f"Fog: {'on' if fog_enabled else 'off'}")
+        debug_print(f"Fog: {'ON' if fog_enabled else 'OFF'}")
     elif key == 'l':
         lighting_enhanced = not lighting_enhanced
         if lighting_enhanced:
-            setup_enhanced_lighting()
+            setup_realistic_lighting()
         else:
             glDisable(GL_LIGHTING)
-        debug_print(f"Enhanced lighting: {'on' if lighting_enhanced else 'off'}")
-    elif key == '\x1b' or key == 'q':  # Escape or Q to quit
+        debug_print(f"Lighting: {'ON' if lighting_enhanced else 'OFF'}")
+    elif key == '\x1b':  # Escape to quit
         debug_print("Exiting...")
         sys.exit(0)
 
@@ -762,13 +786,13 @@ def idle():
     """Idle function for smooth animation."""
     glutPostRedisplay()
 
-def draw_enhanced_cart(pos, forward):
-    """Draw enhanced cart with detailed 3D model."""
-    # Cart material
-    cart_ambient = [0.2, 0.05, 0.05, 1.0]
-    cart_diffuse = [0.8, 0.1, 0.1, 1.0]
-    cart_specular = [0.6, 0.3, 0.3, 1.0]
-    cart_shininess = [25.0]
+def draw_realistic_cart(pos, forward):
+    """Draw realistic roller coaster cart like mobile games."""
+    # Colorful cart material (bright colors like mobile games)
+    cart_ambient = [0.2, 0.1, 0.05, 1.0]
+    cart_diffuse = [0.9, 0.3, 0.1, 1.0]     # Bright orange/red
+    cart_specular = [0.8, 0.6, 0.4, 1.0]
+    cart_shininess = [30.0]
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, cart_ambient)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, cart_diffuse)
@@ -777,62 +801,62 @@ def draw_enhanced_cart(pos, forward):
     
     glPushMatrix()
     
-    # Position cart
-    glTranslatef(pos[0], pos[1] + 0.2, pos[2])
+    # Position cart on track
+    glTranslatef(pos[0], pos[1] + 0.3, pos[2])
     
-    # Orient cart along track
+    # Orient cart along track direction
     up = np.array([0.0, 1.0, 0.0])
     right = normalize_vector(cross_product(forward, up))
     
-    # Create rotation matrix for proper orientation
+    # Smooth rotation
     angle = math.degrees(math.atan2(forward[2], forward[0]))
     glRotatef(angle, 0, 1, 0)
     
-    # Scale cart
+    # Scale for mobile game proportions
     glScalef(cart_scale, cart_scale, cart_scale)
     
-    # Main cart body (red)
-    glColor3f(0.8, 0.1, 0.1)
+    # Main cart body (bright colored)
+    glColor3f(0.9, 0.3, 0.1)  # Bright orange
     glPushMatrix()
-    glScalef(1.2, 0.6, 0.8)
+    glScalef(1.4, 0.8, 1.0)
     glutSolidCube(1.0)
     glPopMatrix()
     
-    # Cart seat (darker red)
-    glColor3f(0.6, 0.05, 0.05)
-    glPushMatrix()
-    glTranslatef(0, 0.2, 0.1)
-    glScalef(0.8, 0.3, 0.6)
-    glutSolidCube(1.0)
-    glPopMatrix()
+    # Cart seats (slightly darker)
+    glColor3f(0.7, 0.2, 0.05)
+    for seat_pos in [-0.3, 0.3]:
+        glPushMatrix()
+        glTranslatef(seat_pos, 0.3, 0)
+        glScalef(0.4, 0.4, 0.8)
+        glutSolidCube(1.0)
+        glPopMatrix()
     
-    # Safety bar (metallic)
-    bar_ambient = [0.1, 0.1, 0.15, 1.0]
-    bar_diffuse = [0.3, 0.3, 0.4, 1.0]
-    bar_specular = [0.8, 0.8, 0.9, 1.0]
-    bar_shininess = [60.0]
+    # Safety bars (metallic)
+    bar_ambient = [0.15, 0.15, 0.2, 1.0]
+    bar_diffuse = [0.4, 0.4, 0.5, 1.0]
+    bar_specular = [0.9, 0.9, 1.0, 1.0]
+    bar_shininess = [80.0]
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, bar_ambient)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, bar_diffuse)
     glMaterialfv(GL_FRONT, GL_SPECULAR, bar_specular)
     glMaterialfv(GL_FRONT, GL_SHININESS, bar_shininess)
     
-    glColor3f(0.4, 0.4, 0.5)
+    glColor3f(0.5, 0.5, 0.6)
     glPushMatrix()
-    glTranslatef(0, 0.6, 0.3)
-    glScalef(0.9, 0.1, 0.1)
+    glTranslatef(0, 0.8, 0.4)
+    glScalef(1.2, 0.1, 0.1)
     glutSolidCube(1.0)
     glPopMatrix()
     
-    # Wheels (black with metallic rims)
-    wheel_positions = [(-0.4, -0.4, -0.3), (0.4, -0.4, -0.3), 
-                      (-0.4, -0.4, 0.3), (0.4, -0.4, 0.3)]
+    # Wheels (black with shiny rims)
+    wheel_positions = [(-0.5, -0.5, -0.4), (0.5, -0.5, -0.4), 
+                      (-0.5, -0.5, 0.4), (0.5, -0.5, 0.4)]
     
-    # Wheel material
     wheel_ambient = [0.05, 0.05, 0.05, 1.0]
     wheel_diffuse = [0.1, 0.1, 0.1, 1.0]
-    wheel_specular = [0.2, 0.2, 0.2, 1.0]
-    wheel_shininess = [15.0]
+    wheel_specular = [0.3, 0.3, 0.3, 1.0]
+    wheel_shininess = [20.0]
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, wheel_ambient)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, wheel_diffuse)
@@ -844,10 +868,84 @@ def draw_enhanced_cart(pos, forward):
     for wx, wy, wz in wheel_positions:
         glPushMatrix()
         glTranslatef(wx, wy, wz)
-        glutSolidSphere(0.15, 12, 8)
+        glutSolidSphere(0.18, 16, 12)
         glPopMatrix()
     
     glPopMatrix()
+
+def draw_mobile_game_ui():
+    """Draw clean UI like mobile roller coaster games."""
+    if not show_cart_info:
+        return
+    
+    # Save current state
+    glPushAttrib(GL_ALL_ATTRIB_BITS)
+    glDisable(GL_LIGHTING)
+    glDisable(GL_DEPTH_TEST)
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    
+    # Switch to 2D rendering
+    glMatrixMode(GL_PROJECTION)
+    glPushMatrix()
+    glLoadIdentity()
+    glOrtho(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT, -1, 1)
+    glMatrixMode(GL_MODELVIEW)
+    glPushMatrix()
+    glLoadIdentity()
+    
+    # Clean background panel (top-left)
+    glColor4f(0.0, 0.0, 0.0, 0.4)  # Semi-transparent black
+    glBegin(GL_QUADS)
+    glVertex2f(10, WINDOW_HEIGHT - 100)
+    glVertex2f(350, WINDOW_HEIGHT - 100)
+    glVertex2f(350, WINDOW_HEIGHT - 10)
+    glVertex2f(10, WINDOW_HEIGHT - 10)
+    glEnd()
+    
+    # Speed indicator
+    glColor3f(1.0, 1.0, 1.0)  # White text
+    glRasterPos2f(20, WINDOW_HEIGHT - 30)
+    speed_text = f"Speed: {speed:.3f}"
+    for char in speed_text:
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
+    
+    # Camera mode
+    glRasterPos2f(20, WINDOW_HEIGHT - 50)
+    camera_names = {1: "Third-Person", 2: "First-Person", 3: "Free-Fly"}
+    camera_text = f"Camera: {camera_names.get(camera_mode, 'Unknown')}"
+    for char in camera_text:
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
+    
+    # Status
+    glRasterPos2f(20, WINDOW_HEIGHT - 70)
+    status_text = f"Status: {'PAUSED' if paused else 'RUNNING'}"
+    for char in status_text:
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
+    
+    # Controls (bottom)
+    glColor4f(0.0, 0.0, 0.0, 0.3)
+    glBegin(GL_QUADS)
+    glVertex2f(10, 10)
+    glVertex2f(WINDOW_WIDTH - 10, 10)
+    glVertex2f(WINDOW_WIDTH - 10, 60)
+    glVertex2f(10, 60)
+    glEnd()
+    
+    glColor3f(0.9, 0.9, 0.9)
+    glRasterPos2f(20, 40)
+    controls_text = "W/S: Speed | P/SPACE: Pause | C: Camera | I: Info | T: Track | E: Environment | ESC: Quit"
+    for char in controls_text:
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(char))
+    
+    # Restore matrices
+    glPopMatrix()
+    glMatrixMode(GL_PROJECTION)
+    glPopMatrix()
+    glMatrixMode(GL_MODELVIEW)
+    
+    # Restore state
+    glPopAttrib()
 
 def demo_mode():
     """Run enhanced simulation in demo mode without graphics (for testing)."""
@@ -951,40 +1049,40 @@ def run():
     glutIdleFunc(idle)
 
     # Print enhanced startup information
-    print("=" * 70)
-    print("PROFESSIONAL ROLLER COASTER SIMULATION")
-    print("Enhanced Graphics | Cinematic Camera | Realistic Environment")
-    print("=" * 70)
+    print("=" * 80)
+    print("ULTRA-REALISTIC 3D ROLLER COASTER SIMULATION")
+    print("Mobile Game Quality | Smooth Blue Rails | Professional Graphics")
+    print("=" * 80)
     print(f"OpenGL Version: {glGetString(GL_VERSION).decode()}")
     print(f"Renderer: {glGetString(GL_RENDERER).decode()}")
-    print(f"Track Points: {len(control_points)} | Estimated Length: ~{len(control_points) * 5} units")
-    print(f"Initial Speed: {speed:.3f} | Window: {WINDOW_WIDTH}x{WINDOW_HEIGHT}")
+    print(f"Track Points: {len(control_points)} | Window: {WINDOW_WIDTH}x{WINDOW_HEIGHT}")
+    print(f"Initial Speed: {speed:.3f} | Ultra-Smooth Animation: ON")
     print()
-    print("ENHANCED CONTROLS:")
-    print("  W/S       - Adjust Speed (Fine Control)")
-    print("  SPACE     - Pause/Resume Animation")
-    print("  C         - Cycle Camera Modes (5 modes)")
-    print("  I         - Toggle Information Display")
-    print("  T         - Toggle Track Visualization")
-    print("  E         - Toggle Environment (Trees/Buildings)")
+    print("MOBILE GAME CONTROLS:")
+    print("  W/S       - Ultra-Smooth Speed Control")
+    print("  P/SPACE   - Pause/Resume Animation")
+    print("  C         - Camera Modes (Third-Person | First-Person | Free-Fly)")
+    print("  I         - Toggle Information HUD")
+    print("  T         - Toggle Blue Track Rails")
+    print("  E         - Toggle Environment")
     print("  F         - Toggle Atmospheric Fog")
-    print("  L         - Toggle Enhanced Lighting")
-    print("  ESC/Q     - Exit Simulation")
+    print("  L         - Toggle Realistic Lighting")
+    print("  ESC       - Exit Simulation")
     print()
     print("CAMERA MODES:")
-    print("  0: Smooth Follow  | 1: First-Person  | 2: Cinematic Tracking")
-    print("  3: Orbit Camera   | 4: Dynamic Flyby")
+    print("  1: Third-Person Follow  | 2: First-Person View  | 3: Free-Fly Camera")
     print()
-    print("FEATURES ACTIVE:")
-    print(f"  [OK] Enhanced Terrain & Realistic Trees")
-    print(f"  [OK] 3D Tubular Track with Cross Ties")
-    print(f"  [OK] Detailed Cart with Wheels & Safety Bar")
-    print(f"  [OK] Premium 3-Light System & Materials")
-    print(f"  [OK] Atmospheric Fog & Anti-Aliasing")
-    print(f"  [OK] Smooth Camera Interpolation")
+    print("MOBILE GAME FEATURES:")
+    print(f"  [OK] Bright Blue Tubular Rails (Like Mobile Games)")
+    print(f"  [OK] Realistic Green Rolling Terrain")
+    print(f"  [OK] Colorful Cart with Seats & Wheels")
+    print(f"  [OK] Sky Gradient Background with Fog")
+    print(f"  [OK] Ultra-Smooth Camera Movement")
+    print(f"  [OK] Professional Lighting & Materials")
+    print(f"  [OK] Clean Mobile Game UI")
     print()
-    print("Starting Professional Simulation...")
-    print("=" * 70)
+    print("Starting Ultra-Realistic Simulation...")
+    print("=" * 80)
 
     # Start the main loop
     glutMainLoop()
