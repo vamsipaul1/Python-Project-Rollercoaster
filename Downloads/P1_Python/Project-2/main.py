@@ -57,13 +57,13 @@ lighting_enhanced = True
 particle_effects = True
 mobile_game_mode = True
 
-# Mobile game camera system with smooth quality
+# Enhanced mobile game camera system with ultra-smooth quality
 camera_position = np.array([0.0, 8.0, 15.0])
 camera_target = np.array([0.0, 0.0, 0.0])
 camera_up = np.array([0.0, 1.0, 0.0])
-camera_smooth_factor = 0.08  # Smooth mobile game movement
+camera_smooth_factor = 0.12  # Ultra-smooth mobile game movement
 cinematic_transition_time = 0.0
-cinematic_transition_duration = 1.5
+cinematic_transition_duration = 1.2  # Faster transitions
 
 # Mobile game performance settings
 target_frame_time = 1.0 / target_fps
@@ -211,65 +211,65 @@ def smooth_camera_interpolation(target_pos, target_look, target_up, dt):
     camera_up = normalize_vector(camera_up)
 
 def apply_mobile_game_camera(cart_pos, cart_forward, current_time, dt):
-    """Apply mobile game camera system like the reference image."""
+    """Apply enhanced mobile game camera system with better angles and smoother movement."""
     global camera_position, camera_target, camera_up, cinematic_transition_time
     
     cart_pos = np.array(cart_pos, dtype=float)
     cart_forward = normalize_vector(cart_forward)
     cart_up = np.array([0.0, 1.0, 0.0])
     
-    # Mobile game camera modes
-    if camera_mode == 1:  # Mobile game third-person
-        follow_distance = 10.0  # Mobile game follow distance
-        follow_height = 5.0
-        lookahead = 3.0
+    # Enhanced mobile game camera modes with better angles
+    if camera_mode == 1:  # Enhanced third-person follow
+        follow_distance = 12.0  # Better follow distance
+        follow_height = 6.0     # Better height for tree visibility
+        lookahead = 4.0
         
-        # Mobile game follow position
+        # Enhanced follow position with better angle
         target_pos = cart_pos - cart_forward * follow_distance + cart_up * follow_height
         target_look = cart_pos + cart_forward * lookahead
         target_up = cart_up
         
-    elif camera_mode == 2:  # Mobile game first-person
-        seat_height = 0.8
-        look_distance = 6.0
+    elif camera_mode == 2:  # Enhanced first-person
+        seat_height = 1.2        # Better seat height
+        look_distance = 8.0    # Better look distance
         
         target_pos = cart_pos + cart_up * seat_height
         target_look = cart_pos + cart_forward * look_distance + cart_up * seat_height
         target_up = cart_up
         
-    elif camera_mode == 3:  # Mobile game orbit camera
-        orbit_radius = 12.0
-        orbit_height = 6.0
-        orbit_angle = current_time * 0.2  # Mobile game orbit
+    elif camera_mode == 3:  # Enhanced orbit camera
+        orbit_radius = 15.0    # Better orbit radius
+        orbit_height = 8.0     # Better height for tree visibility
+        orbit_angle = current_time * 0.15  # Slower, smoother orbit
         
-        # Mobile game orbit around cart
+        # Enhanced orbit around cart with better angle
         orbit_x = math.cos(orbit_angle) * orbit_radius
         orbit_z = math.sin(orbit_angle) * orbit_radius
         
         target_pos = cart_pos + np.array([orbit_x, orbit_height, orbit_z])
-        target_look = cart_pos
+        target_look = cart_pos + cart_up * 2.0  # Look slightly up for better tree view
         target_up = cart_up
         
-    elif camera_mode == 4:  # Mobile game flyby camera
-        flyby_distance = 15.0
-        flyby_height = 8.0
-        flyby_angle = current_time * 0.15  # Mobile game flyby
+    elif camera_mode == 4:  # Enhanced flyby camera
+        flyby_distance = 18.0  # Better flyby distance
+        flyby_height = 10.0   # Better height for tree visibility
+        flyby_angle = current_time * 0.12  # Slower, smoother flyby
         
-        # Mobile game flyby trajectory
+        # Enhanced flyby trajectory with better angle
         flyby_x = math.cos(flyby_angle) * flyby_distance
         flyby_z = math.sin(flyby_angle) * flyby_distance
         
         target_pos = cart_pos + np.array([flyby_x, flyby_height, flyby_z])
-        target_look = cart_pos + cart_forward * 4.0
+        target_look = cart_pos + cart_forward * 5.0 + cart_up * 3.0  # Look ahead and up
         target_up = cart_up
         
-    else:  # Default mobile game view
-        target_pos = cart_pos + np.array([0, 8, 15])
-        target_look = cart_pos
+    else:  # Default enhanced view
+        target_pos = cart_pos + np.array([0, 10, 18])  # Better default angle
+        target_look = cart_pos + cart_up * 2.0
         target_up = cart_up
     
-    # Apply mobile game interpolation
-    mobile_game_camera_interpolation(target_pos, target_look, target_up, dt)
+    # Apply enhanced smooth interpolation
+    enhanced_camera_interpolation(target_pos, target_look, target_up, dt)
     
     # Apply the camera transformation
     gluLookAt(
@@ -278,26 +278,28 @@ def apply_mobile_game_camera(cart_pos, cart_forward, current_time, dt):
         camera_up[0], camera_up[1], camera_up[2]
     )
 
-def mobile_game_camera_interpolation(target_pos, target_look, target_up, dt):
-    """Mobile game camera interpolation with smooth transitions."""
+def enhanced_camera_interpolation(target_pos, target_look, target_up, dt):
+    """Enhanced camera interpolation with ultra-smooth movement."""
     global camera_position, camera_target, camera_up, cinematic_transition_time
     
     # Update transition time
     cinematic_transition_time += dt
     
-    # Mobile game easing function for smooth transitions
+    # Enhanced easing function for ultra-smooth transitions
     if cinematic_transition_time < cinematic_transition_duration:
-        # Smooth ease-in-out transition
+        # Ultra-smooth ease-in-out transition
         t = cinematic_transition_time / cinematic_transition_duration
-        ease_factor = 3 * t * t - 2 * t * t * t  # Smooth cubic easing
+        # Smoother cubic easing for better movement
+        ease_factor = 6 * t * t * t * t * t - 15 * t * t * t * t + 10 * t * t * t
     else:
         ease_factor = 1.0
         cinematic_transition_time = cinematic_transition_duration
     
-    # Apply mobile game interpolation
-    camera_position = camera_position + (target_pos - camera_position) * ease_factor * camera_smooth_factor
-    camera_target = camera_target + (target_look - camera_target) * ease_factor * camera_smooth_factor
-    camera_up = camera_up + (target_up - camera_up) * ease_factor * camera_smooth_factor
+    # Enhanced interpolation with smoother movement
+    smooth_factor = camera_smooth_factor * 1.5  # Smoother movement
+    camera_position = camera_position + (target_pos - camera_position) * ease_factor * smooth_factor
+    camera_target = camera_target + (target_look - camera_target) * ease_factor * smooth_factor
+    camera_up = camera_up + (target_up - camera_up) * ease_factor * smooth_factor
     
     # Normalize up vector for stability
     camera_up = normalize_vector(camera_up)
@@ -426,65 +428,97 @@ def draw_mobile_game_building(x, y, z, width, height, depth, material_type):
             glPopMatrix()
 
 def draw_mobile_game_trees():
-    """Draw mobile game trees with vibrant foliage like the reference."""
-    # Mobile game tree positions
+    """Draw highly visible mobile game trees with vibrant foliage."""
+    # Enhanced tree positions for better visibility
     tree_positions = [
-        (-50, -1.5, -15, 4.0, 'oak'), (50, -1.5, -15, 4.0, 'pine'),
-        (-50, -1.5, 15, 4.0, 'oak'), (50, -1.5, 15, 4.0, 'pine'),
-        (0, -1.5, -50, 4.5, 'oak'), (0, -1.5, 50, 4.5, 'pine'),
-        (-25, -1.5, -40, 3.5, 'oak'), (25, -1.5, -40, 3.5, 'pine'),
-        (-25, -1.5, 40, 3.5, 'oak'), (25, -1.5, 40, 3.5, 'pine')
+        # Close trees for immediate visibility
+        (-30, -1.5, -10, 5.0, 'oak'), (30, -1.5, -10, 5.0, 'pine'),
+        (-30, -1.5, 10, 5.0, 'oak'), (30, -1.5, 10, 5.0, 'pine'),
+        (-15, -1.5, -25, 4.5, 'oak'), (15, -1.5, -25, 4.5, 'pine'),
+        (-15, -1.5, 25, 4.5, 'oak'), (15, -1.5, 25, 4.5, 'pine'),
+        
+        # Medium distance trees
+        (-60, -1.5, -20, 6.0, 'oak'), (60, -1.5, -20, 6.0, 'pine'),
+        (-60, -1.5, 20, 6.0, 'oak'), (60, -1.5, 20, 6.0, 'pine'),
+        (-40, -1.5, -50, 5.5, 'oak'), (40, -1.5, -50, 5.5, 'pine'),
+        (-40, -1.5, 50, 5.5, 'oak'), (40, -1.5, 50, 5.5, 'pine'),
+        
+        # Background trees
+        (-80, -1.5, -30, 7.0, 'oak'), (80, -1.5, -30, 7.0, 'pine'),
+        (-80, -1.5, 30, 7.0, 'oak'), (80, -1.5, 30, 7.0, 'pine'),
+        (0, -1.5, -70, 6.5, 'oak'), (0, -1.5, 70, 6.5, 'pine'),
+        (-20, -1.5, -60, 5.0, 'oak'), (20, -1.5, -60, 5.0, 'pine'),
+        (-20, -1.5, 60, 5.0, 'oak'), (20, -1.5, 60, 5.0, 'pine')
     ]
     
     for x, y, z, height, tree_type in tree_positions:
-        draw_mobile_game_tree(x, y, z, height, tree_type)
+        draw_enhanced_mobile_tree(x, y, z, height, tree_type)
 
-def draw_mobile_game_tree(x, y, z, height, tree_type):
-    """Draw mobile game tree with vibrant materials like the reference."""
-    # Mobile game trunk material
-    trunk_ambient = [0.2, 0.1, 0.05, 1.0]
-    trunk_diffuse = [0.5, 0.3, 0.15, 1.0]  # Bright mobile game brown
-    trunk_specular = [0.1, 0.1, 0.05, 1.0]
-    trunk_shininess = [15.0]
+def draw_enhanced_mobile_tree(x, y, z, height, tree_type):
+    """Draw enhanced mobile game tree with better visibility and detail."""
+    # Enhanced trunk material for better visibility
+    trunk_ambient = [0.25, 0.15, 0.08, 1.0]
+    trunk_diffuse = [0.6, 0.4, 0.2, 1.0]  # Brighter mobile game brown
+    trunk_specular = [0.15, 0.1, 0.05, 1.0]
+    trunk_shininess = [20.0]
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, trunk_ambient)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, trunk_diffuse)
     glMaterialfv(GL_FRONT, GL_SPECULAR, trunk_specular)
     glMaterialfv(GL_FRONT, GL_SHININESS, trunk_shininess)
     
-    # Mobile game trunk
-    glColor3f(0.5, 0.3, 0.15)  # Bright mobile game brown
+    # Enhanced trunk with better visibility
+    glColor3f(0.6, 0.4, 0.2)  # Brighter mobile game brown
     glPushMatrix()
     glTranslatef(x, y + height/2, z)
-    glScalef(0.35, height, 0.35)
-    glutSolidCylinder(1.0, 1.0, 10, 6)
+    glScalef(0.4, height, 0.4)  # Slightly thicker trunk
+    glutSolidCylinder(1.0, 1.0, 12, 8)  # More segments for detail
     glPopMatrix()
     
-    # Mobile game foliage (bright green like reference)
-    foliage_ambient = [0.1, 0.3, 0.1, 1.0]
-    foliage_diffuse = [0.2, 0.8, 0.2, 1.0]  # Bright mobile game green
-    foliage_specular = [0.2, 0.4, 0.2, 1.0]
-    foliage_shininess = [8.0]
+    # Enhanced foliage (brighter green for better visibility)
+    foliage_ambient = [0.15, 0.4, 0.15, 1.0]
+    foliage_diffuse = [0.3, 0.9, 0.3, 1.0]  # Brighter mobile game green
+    foliage_specular = [0.3, 0.5, 0.3, 1.0]
+    foliage_shininess = [12.0]
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, foliage_ambient)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, foliage_diffuse)
     glMaterialfv(GL_FRONT, GL_SPECULAR, foliage_specular)
     glMaterialfv(GL_FRONT, GL_SHININESS, foliage_shininess)
     
-    # Mobile game foliage with different shapes
-    glColor3f(0.2, 0.8, 0.2)  # Bright mobile game green
+    # Enhanced foliage with different shapes and better visibility
+    glColor3f(0.3, 0.9, 0.3)  # Brighter mobile game green
     if tree_type == 'oak':
-        # Oak tree - rounded crown
+        # Oak tree - multiple spheres for fuller look
         glPushMatrix()
         glTranslatef(x, y + height * 0.8, z)
-        glutSolidSphere(height * 0.4, 10, 8)
+        glutSolidSphere(height * 0.45, 12, 10)  # Larger, more detailed
         glPopMatrix()
+        
+        # Additional smaller spheres for fuller foliage
+        glPushMatrix()
+        glTranslatef(x + height * 0.2, y + height * 0.7, z)
+        glutSolidSphere(height * 0.25, 10, 8)
+        glPopMatrix()
+        
+        glPushMatrix()
+        glTranslatef(x - height * 0.2, y + height * 0.7, z)
+        glutSolidSphere(height * 0.25, 10, 8)
+        glPopMatrix()
+        
     else:  # pine
-        # Pine tree - conical crown
+        # Pine tree - conical crown with better detail
         glPushMatrix()
         glTranslatef(x, y + height * 0.75, z)
-        glScalef(1.0, 1.4, 1.0)
-        glutSolidCone(height * 0.3, height * 0.6, 10, 6)
+        glScalef(1.0, 1.6, 1.0)
+        glutSolidCone(height * 0.35, height * 0.7, 12, 8)  # Larger, more detailed
+        glPopMatrix()
+        
+        # Additional smaller cone for fuller look
+        glPushMatrix()
+        glTranslatef(x, y + height * 0.9, z)
+        glScalef(0.7, 1.0, 0.7)
+        glutSolidCone(height * 0.2, height * 0.4, 10, 6)
         glPopMatrix()
 
 def draw_mobile_game_details():
@@ -587,10 +621,10 @@ def draw_mobile_game_ui():
     for char in speed_text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
     
-    # Mobile game camera mode
+    # Enhanced mobile game camera mode
     glColor3f(0.8, 0.8, 1.0)  # Mobile game light blue
     glRasterPos2f(25, WINDOW_HEIGHT - 50)
-    camera_names = {1: "MOBILE FOLLOW", 2: "FIRST-PERSON", 3: "ORBIT", 4: "FLYBY"}
+    camera_names = {1: "ENHANCED FOLLOW", 2: "FIRST-PERSON", 3: "SMOOTH ORBIT", 4: "CINEMATIC FLYBY"}
     camera_text = f"CAMERA: {camera_names.get(camera_mode, 'UNKNOWN')}"
     for char in camera_text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
@@ -627,12 +661,12 @@ def draw_mobile_game_ui():
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(char))
     
     glRasterPos2f(25, 30)
-    info_text = "MOBILE ROLLER COASTER SIMULATION - Vibrant Graphics & Smooth Animation Like Reference"
+    info_text = "ENHANCED ROLLER COASTER SIMULATION - Ultra-Smooth Cameras & Highly Visible Trees"
     for char in info_text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(char))
     
     glRasterPos2f(25, 10)
-    features_text = "FEATURES: Bright Green Track | Blue Cart | Vibrant Environment | Mobile Game Quality"
+    features_text = "FEATURES: Enhanced Trees | Smooth Camera Angles | Ultra-Smooth Animation | Professional Quality"
     for char in features_text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(char))
     
