@@ -6,26 +6,56 @@ Purpose: Spline curve utilities for roller coaster track using Catmull-Rom inter
 
 import numpy as np
 
-# Default control points for the roller coaster track
-# These form a closed loop track with hills and curves
+# Extended control points for a lengthy roller coaster track
+# This creates a long, extensive travel path instead of a short loop
 control_points = [
+    # Starting section - gentle beginning
     (0.0, 0.0, 0.0),      # Start point
-    (5.0, 0.0, 2.0),      # First curve up
-    (10.0, 2.0, 5.0),     # Hill top
-    (15.0, 0.0, 8.0),     # Downhill
-    (20.0, -1.0, 5.0),    # Valley
-    (25.0, 1.0, 2.0),     # Back uphill
-    (30.0, 3.0, 0.0),     # High point
-    (35.0, 0.0, -3.0),    # Sharp turn
-    (40.0, -2.0, 0.0),    # Low point
-    (35.0, 0.0, 3.0),     # Turn back
-    (30.0, 1.0, 0.0),     # Approach start
-    (25.0, 0.0, -2.0),    # Final curve
-    (20.0, 0.0, 0.0),     # Back to area near start
-    (15.0, 0.0, 2.0),     # Curve around
-    (10.0, 0.0, 0.0),     # Near start
-    (5.0, 0.0, -1.0),     # Final approach
-    (0.0, 0.0, 0.0)       # Back to start (closed loop)
+    (10.0, 0.0, 5.0),     # Gentle curve
+    (25.0, 2.0, 15.0),    # First hill
+    (45.0, 0.0, 25.0),    # Downhill
+    
+    # First major section - hills and valleys
+    (70.0, -2.0, 40.0),   # Valley
+    (95.0, 4.0, 55.0),    # Big hill
+    (120.0, 1.0, 70.0),   # Plateau
+    (145.0, -1.0, 85.0),  # Downhill
+    
+    # Second section - curves and turns
+    (170.0, 0.0, 100.0),  # Straight section
+    (195.0, 3.0, 115.0),  # Turn and climb
+    (220.0, 0.0, 130.0),  # Level section
+    (245.0, -2.0, 145.0), # Downhill turn
+    
+    # Third section - more hills
+    (270.0, 0.0, 160.0),  # Valley
+    (295.0, 5.0, 175.0),  # Major hill
+    (320.0, 2.0, 190.0),  # Plateau
+    (345.0, 0.0, 205.0),  # Level section
+    
+    # Fourth section - return journey
+    (320.0, -1.0, 220.0), # Turn back
+    (295.0, 0.0, 235.0),  # Straight
+    (270.0, 3.0, 250.0),  # Hill
+    (245.0, 0.0, 265.0),  # Level
+    
+    # Fifth section - final stretch
+    (220.0, -2.0, 280.0), # Downhill
+    (195.0, 0.0, 295.0),  # Valley
+    (170.0, 2.0, 310.0),  # Small hill
+    (145.0, 0.0, 325.0),  # Level
+    
+    # Sixth section - approaching end
+    (120.0, -1.0, 340.0), # Downhill
+    (95.0, 0.0, 355.0),   # Level
+    (70.0, 1.0, 370.0),   # Small rise
+    (45.0, 0.0, 385.0),   # Level
+    
+    # Final section - return to start area
+    (20.0, -1.0, 400.0),  # Final downhill
+    (0.0, 0.0, 415.0),    # Near start
+    (-15.0, 0.0, 430.0),  # Extend past start
+    (-30.0, 0.0, 445.0),  # Final point
 ]
 
 def catmull_rom_point(p0, p1, p2, p3, t):

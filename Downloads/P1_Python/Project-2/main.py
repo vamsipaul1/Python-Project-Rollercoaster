@@ -65,14 +65,14 @@ camera_smooth_factor = 0.12  # Ultra-smooth mobile game movement
 cinematic_transition_time = 0.0
 cinematic_transition_duration = 1.2  # Faster transitions
 
-# Mobile game performance settings
+# Enhanced mobile game performance settings for longer track
 target_frame_time = 1.0 / target_fps
 vsync_enabled = True
 adaptive_quality = True
-lod_distance = 80.0
+lod_distance = 200.0  # Increased for longer track visibility
 
-# Visual settings for ultra-realistic urban environment
-terrain_size = 300.0
+# Visual settings for extended track environment
+terrain_size = 500.0  # Increased terrain for longer track
 rail_radius = 0.12      # Realistic rail thickness
 rail_segments = 20      # Ultra-smooth circular rails
 cart_scale = 1.0        # Realistic cart proportions
@@ -350,9 +350,10 @@ def draw_mobile_game_urban_scene():
     draw_mobile_game_details()
 
 def draw_mobile_game_buildings():
-    """Draw mobile game buildings with vibrant materials like the reference."""
-    # Mobile game building positions with vibrant scale
+    """Draw mobile game buildings for extended track area."""
+    # Enhanced building positions for extended track coverage
     building_positions = [
+        # Close buildings
         (-70, -1.5, -35, 18, 30, 10, 'red_brick'),
         (70, -1.5, -35, 18, 30, 10, 'brown_brick'),
         (-70, -1.5, 35, 18, 30, 10, 'red_brick'),
@@ -360,7 +361,27 @@ def draw_mobile_game_buildings():
         (-35, -1.5, -70, 15, 25, 8, 'gray_concrete'),
         (35, -1.5, -70, 15, 25, 8, 'gray_concrete'),
         (-35, -1.5, 70, 15, 25, 8, 'gray_concrete'),
-        (35, -1.5, 70, 15, 25, 8, 'gray_concrete')
+        (35, -1.5, 70, 15, 25, 8, 'gray_concrete'),
+        
+        # Extended track area buildings
+        (-120, -1.5, -60, 20, 35, 12, 'red_brick'),
+        (120, -1.5, -60, 20, 35, 12, 'brown_brick'),
+        (-120, -1.5, 60, 20, 35, 12, 'red_brick'),
+        (120, -1.5, 60, 20, 35, 12, 'brown_brick'),
+        (-60, -1.5, -120, 18, 30, 10, 'gray_concrete'),
+        (60, -1.5, -120, 18, 30, 10, 'gray_concrete'),
+        (-60, -1.5, 120, 18, 30, 10, 'gray_concrete'),
+        (60, -1.5, 120, 18, 30, 10, 'gray_concrete'),
+        
+        # Far track area buildings
+        (-180, -1.5, -90, 22, 40, 14, 'red_brick'),
+        (180, -1.5, -90, 22, 40, 14, 'brown_brick'),
+        (-180, -1.5, 90, 22, 40, 14, 'red_brick'),
+        (180, -1.5, 90, 22, 40, 14, 'brown_brick'),
+        (-90, -1.5, -180, 20, 35, 12, 'gray_concrete'),
+        (90, -1.5, -180, 20, 35, 12, 'gray_concrete'),
+        (-90, -1.5, 180, 20, 35, 12, 'gray_concrete'),
+        (90, -1.5, 180, 20, 35, 12, 'gray_concrete'),
     ]
     
     for x, y, z, w, h, d, material_type in building_positions:
@@ -428,8 +449,8 @@ def draw_mobile_game_building(x, y, z, width, height, depth, material_type):
             glPopMatrix()
 
 def draw_mobile_game_trees():
-    """Draw highly visible mobile game trees with vibrant foliage."""
-    # Enhanced tree positions for better visibility
+    """Draw highly visible mobile game trees for extended track area."""
+    # Enhanced tree positions for extended track coverage
     tree_positions = [
         # Close trees for immediate visibility
         (-30, -1.5, -10, 5.0, 'oak'), (30, -1.5, -10, 5.0, 'pine'),
@@ -443,12 +464,24 @@ def draw_mobile_game_trees():
         (-40, -1.5, -50, 5.5, 'oak'), (40, -1.5, -50, 5.5, 'pine'),
         (-40, -1.5, 50, 5.5, 'oak'), (40, -1.5, 50, 5.5, 'pine'),
         
-        # Background trees
-        (-80, -1.5, -30, 7.0, 'oak'), (80, -1.5, -30, 7.0, 'pine'),
-        (-80, -1.5, 30, 7.0, 'oak'), (80, -1.5, 30, 7.0, 'pine'),
-        (0, -1.5, -70, 6.5, 'oak'), (0, -1.5, 70, 6.5, 'pine'),
-        (-20, -1.5, -60, 5.0, 'oak'), (20, -1.5, -60, 5.0, 'pine'),
-        (-20, -1.5, 60, 5.0, 'oak'), (20, -1.5, 60, 5.0, 'pine')
+        # Extended track area trees
+        (-100, -1.5, -30, 7.0, 'oak'), (100, -1.5, -30, 7.0, 'pine'),
+        (-100, -1.5, 30, 7.0, 'oak'), (100, -1.5, 30, 7.0, 'pine'),
+        (0, -1.5, -100, 6.5, 'oak'), (0, -1.5, 100, 6.5, 'pine'),
+        (-20, -1.5, -80, 5.0, 'oak'), (20, -1.5, -80, 5.0, 'pine'),
+        (-20, -1.5, 80, 5.0, 'oak'), (20, -1.5, 80, 5.0, 'pine'),
+        
+        # Far track area trees
+        (-150, -1.5, -50, 8.0, 'oak'), (150, -1.5, -50, 8.0, 'pine'),
+        (-150, -1.5, 50, 8.0, 'oak'), (150, -1.5, 50, 8.0, 'pine'),
+        (-80, -1.5, -150, 7.5, 'oak'), (80, -1.5, -150, 7.5, 'pine'),
+        (-80, -1.5, 150, 7.5, 'oak'), (80, -1.5, 150, 7.5, 'pine'),
+        
+        # Very far area trees
+        (-200, -1.5, -80, 9.0, 'oak'), (200, -1.5, -80, 9.0, 'pine'),
+        (-200, -1.5, 80, 9.0, 'oak'), (200, -1.5, 80, 9.0, 'pine'),
+        (-120, -1.5, -200, 8.5, 'oak'), (120, -1.5, -200, 8.5, 'pine'),
+        (-120, -1.5, 200, 8.5, 'oak'), (120, -1.5, 200, 8.5, 'pine'),
     ]
     
     for x, y, z, height, tree_type in tree_positions:
@@ -661,12 +694,12 @@ def draw_mobile_game_ui():
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(char))
     
     glRasterPos2f(25, 30)
-    info_text = "ENHANCED ROLLER COASTER SIMULATION - Ultra-Smooth Cameras & Highly Visible Trees"
+    info_text = "EXTENDED ROLLER COASTER SIMULATION - Long Travel Track & Extended Environment"
     for char in info_text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(char))
     
     glRasterPos2f(25, 10)
-    features_text = "FEATURES: Enhanced Trees | Smooth Camera Angles | Ultra-Smooth Animation | Professional Quality"
+    features_text = "FEATURES: Extended Track | Long Travel Path | Enhanced Environment | Professional Quality"
     for char in features_text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(char))
     
