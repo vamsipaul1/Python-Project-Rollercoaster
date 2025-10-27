@@ -211,61 +211,85 @@ def smooth_camera_interpolation(target_pos, target_look, target_up, dt):
     camera_up = normalize_vector(camera_up)
 
 def apply_mobile_game_camera(cart_pos, cart_forward, current_time, dt):
-    """Apply enhanced mobile game camera system with better angles and smoother movement."""
+    """Apply creative mobile game camera system with clear forward-looking angles."""
     global camera_position, camera_target, camera_up, cinematic_transition_time
     
     cart_pos = np.array(cart_pos, dtype=float)
     cart_forward = normalize_vector(cart_forward)
     cart_up = np.array([0.0, 1.0, 0.0])
     
-    # Enhanced mobile game camera modes with better angles
-    if camera_mode == 1:  # Enhanced third-person follow
-        follow_distance = 12.0  # Better follow distance
-        follow_height = 6.0     # Better height for tree visibility
-        lookahead = 4.0
+    # Creative camera modes with clear forward-looking angles
+    if camera_mode == 1:  # Creative third-person follow with forward focus
+        follow_distance = 15.0  # Better follow distance
+        follow_height = 8.0     # Higher for better forward view
+        lookahead = 8.0         # Look further ahead
         
-        # Enhanced follow position with better angle
+        # Creative follow position with forward focus
         target_pos = cart_pos - cart_forward * follow_distance + cart_up * follow_height
-        target_look = cart_pos + cart_forward * lookahead
+        target_look = cart_pos + cart_forward * lookahead + cart_up * 2.0  # Look forward and slightly up
         target_up = cart_up
         
-    elif camera_mode == 2:  # Enhanced first-person
-        seat_height = 1.2        # Better seat height
-        look_distance = 8.0    # Better look distance
+    elif camera_mode == 2:  # Creative first-person with clear forward view
+        seat_height = 1.5        # Better seat height
+        look_distance = 12.0     # Look much further ahead
         
         target_pos = cart_pos + cart_up * seat_height
         target_look = cart_pos + cart_forward * look_distance + cart_up * seat_height
         target_up = cart_up
         
-    elif camera_mode == 3:  # Enhanced orbit camera
-        orbit_radius = 15.0    # Better orbit radius
-        orbit_height = 8.0     # Better height for tree visibility
-        orbit_angle = current_time * 0.15  # Slower, smoother orbit
+    elif camera_mode == 3:  # Creative orbit camera with forward focus
+        orbit_radius = 18.0    # Better orbit radius
+        orbit_height = 10.0    # Higher for better view
+        orbit_angle = current_time * 0.1  # Slower, smoother orbit
         
-        # Enhanced orbit around cart with better angle
+        # Creative orbit around cart with forward focus
         orbit_x = math.cos(orbit_angle) * orbit_radius
         orbit_z = math.sin(orbit_angle) * orbit_radius
         
         target_pos = cart_pos + np.array([orbit_x, orbit_height, orbit_z])
-        target_look = cart_pos + cart_up * 2.0  # Look slightly up for better tree view
+        target_look = cart_pos + cart_forward * 6.0 + cart_up * 3.0  # Look forward and up
         target_up = cart_up
         
-    elif camera_mode == 4:  # Enhanced flyby camera
-        flyby_distance = 18.0  # Better flyby distance
-        flyby_height = 10.0   # Better height for tree visibility
-        flyby_angle = current_time * 0.12  # Slower, smoother flyby
+    elif camera_mode == 4:  # Creative cinematic flyby with dynamic angles
+        flyby_distance = 25.0  # Better flyby distance
+        flyby_height = 12.0   # Higher for better view
+        flyby_angle = current_time * 0.08  # Slower, more cinematic
         
-        # Enhanced flyby trajectory with better angle
+        # Creative flyby trajectory with dynamic forward focus
         flyby_x = math.cos(flyby_angle) * flyby_distance
         flyby_z = math.sin(flyby_angle) * flyby_distance
         
+        # Dynamic look-ahead based on track direction
+        look_ahead_factor = 8.0 + 4.0 * math.sin(flyby_angle * 2)  # Varying look distance
+        
         target_pos = cart_pos + np.array([flyby_x, flyby_height, flyby_z])
-        target_look = cart_pos + cart_forward * 5.0 + cart_up * 3.0  # Look ahead and up
+        target_look = cart_pos + cart_forward * look_ahead_factor + cart_up * 4.0
         target_up = cart_up
         
-    else:  # Default enhanced view
-        target_pos = cart_pos + np.array([0, 10, 18])  # Better default angle
-        target_look = cart_pos + cart_up * 2.0
+    elif camera_mode == 5:  # Creative side-follow camera
+        side_distance = 12.0
+        side_height = 6.0
+        side_angle = current_time * 0.12
+        
+        # Side-follow with forward focus
+        side_x = math.cos(side_angle) * side_distance
+        side_z = math.sin(side_angle) * side_distance
+        
+        target_pos = cart_pos + np.array([side_x, side_height, side_z])
+        target_look = cart_pos + cart_forward * 10.0 + cart_up * 2.0
+        target_up = cart_up
+        
+    elif camera_mode == 6:  # Creative low-angle chase camera
+        chase_distance = 8.0
+        chase_height = 3.0
+        
+        target_pos = cart_pos - cart_forward * chase_distance + cart_up * chase_height
+        target_look = cart_pos + cart_forward * 15.0 + cart_up * 1.0  # Look far ahead
+        target_up = cart_up
+        
+    else:  # Default creative view
+        target_pos = cart_pos + np.array([0, 12, 20])  # Better default angle
+        target_look = cart_pos + cart_forward * 10.0 + cart_up * 3.0
         target_up = cart_up
     
     # Apply enhanced smooth interpolation
@@ -654,10 +678,10 @@ def draw_mobile_game_ui():
     for char in speed_text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
     
-    # Enhanced mobile game camera mode
+    # Creative camera mode
     glColor3f(0.8, 0.8, 1.0)  # Mobile game light blue
     glRasterPos2f(25, WINDOW_HEIGHT - 50)
-    camera_names = {1: "ENHANCED FOLLOW", 2: "FIRST-PERSON", 3: "SMOOTH ORBIT", 4: "CINEMATIC FLYBY"}
+    camera_names = {1: "CREATIVE FOLLOW", 2: "FIRST-PERSON", 3: "ORBIT", 4: "CINEMATIC FLYBY", 5: "SIDE-FOLLOW", 6: "LOW-ANGLE CHASE"}
     camera_text = f"CAMERA: {camera_names.get(camera_mode, 'UNKNOWN')}"
     for char in camera_text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
@@ -694,12 +718,12 @@ def draw_mobile_game_ui():
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(char))
     
     glRasterPos2f(25, 30)
-    info_text = "EXTENDED ROLLER COASTER SIMULATION - Long Travel Track & Extended Environment"
+    info_text = "CREATIVE ROLLER COASTER SIMULATION - Clear Forward-Looking Camera Angles"
     for char in info_text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(char))
     
     glRasterPos2f(25, 10)
-    features_text = "FEATURES: Extended Track | Long Travel Path | Enhanced Environment | Professional Quality"
+    features_text = "FEATURES: 6 Creative Cameras | Clear Forward View | Dynamic Angles | Best Looking Experience"
     for char in features_text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ord(char))
     
@@ -2086,11 +2110,11 @@ def keyboard_handler(key, x, y):
         paused = not paused
         debug_print(f"{'PAUSED' if paused else 'RUNNING'}")
     elif key == 'c':
-        # Cycle through 4 professional camera modes
-        camera_mode = (camera_mode % 4) + 1
+        # Cycle through 6 creative camera modes
+        camera_mode = (camera_mode % 6) + 1
         cinematic_transition_time = 0.0  # Reset transition for smooth camera change
-        camera_names = {1: "Cinematic Follow", 2: "First-Person", 3: "Orbit", 4: "Flyby"}
-        debug_print(f"Professional camera: {camera_names[camera_mode]}")
+        camera_names = {1: "Creative Follow", 2: "First-Person", 3: "Orbit", 4: "Cinematic Flyby", 5: "Side-Follow", 6: "Low-Angle Chase"}
+        debug_print(f"Creative camera: {camera_names[camera_mode]}")
     elif key == 'i':
         show_cart_info = not show_cart_info
         debug_print(f"Professional UI: {'ON' if show_cart_info else 'OFF'}")
